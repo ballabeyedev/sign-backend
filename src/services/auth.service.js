@@ -76,7 +76,7 @@ class AuthService {
       where: isEmail ? { email: identifiant } : { telephone: identifiant },
     });
 
-    if (!utilisateur) return { error: 'Email ou numéro ou mot de passe incorrect' };
+    if (!utilisateur) return { error: 'Identifiant ou mot de passe incorrect' };
     if (utilisateur.statut !== 'actif') return { error: `Compte ${utilisateur.statut}` };
 
     const valid = await bcrypt.compare(mot_de_passe, utilisateur.mot_de_passe);
