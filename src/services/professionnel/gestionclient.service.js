@@ -1,0 +1,242 @@
+const Utilisateur = require('../../models/utilisateur.model');
+const bcrypt = require('bcryptjs');
+const sequelize = require('../../config/db');
+const { bcryptConfig } = require('../../config/security');
+const { sendEmail } = require('../../utils/mailer');
+const welcomeTemplate = require('../../templates/mail/welcome.template');
+const { Op } = require('sequelize');
+
+
+class GestionClientService {
+
+  // -------------------- CREATION CLIENT PROFESSIONNEL / ENTREPRISE --------------------
+  static async ajoutClient({
+    nom,
+    prenom,
+    email,
+    mot_de_passe,
+    adresse,
+    telephone,
+    photoProfil,
+    carte_identite_national_num,
+    role = 'Client'
+  }) {
+    const t = await sequelize.transaction();
+    try {
+      const exist = await Utilisateur.findOne({ where: { email }, transaction: t });
+      if (exist) {
+        await t.rollback();
+        return { error: 'Cet utilisateur existe déjà.' };
+      }
+
+      const hashedPassword = await bcrypt.hash(
+        mot_de_passe,
+        bcryptConfig.saltRounds
+      );
+
+      const utilisateur = await Utilisateur.create({
+        nom,
+        prenom,
+        email,
+        mot_de_passe: hashedPassword,
+        adresse,
+        telephone,
+        photoProfil,
+        carte_identite_national_num,
+        role
+      }, { transaction: t });
+
+      await t.commit();
+
+      // Envoi email (non bloquant)
+      try {
+        const html = welcomeTemplate({ nom: utilisateur.nom, prenom: utilisateur.prenom });
+        await sendEmail({
+          to: utilisateur.email,
+          subject: "Bienvenue sur Sign !",
+          html
+        });
+      } catch (mailError) {
+        console.error("Erreur envoi email bienvenue:", mailError);
+      }
+
+      return { utilisateur };
+
+    } catch (err) {
+      await t.rollback();
+      throw err;
+    }
+  }
+
+  
+  // -------------------- MODIFICATION CLIENT CLIENT PROFESSIONNEL / ENTREPRISE --------------------
+   static async modificationClient({ userId, data }) {
+    const {
+        nom,
+        prenom,
+        email,
+        telephone,
+        adresse,
+        photoProfil,
+        carte_identite_national_num
+    } = data;
+
+    const t = await sequelize.transaction();
+
+    try {
+        const utilisateur = await Utilisateur.findByPk(userId, { transaction: t });
+        if (!utilisateur) {
+        await t.rollback();
+        return { error: "Utilisateur non trouvé" };
+        }
+
+        // Vérification email
+        if (email && email !== utilisateur.email) {
+        const existEmail = await Utilisateur.findOne({
+            where: { email },
+            transaction: t
+        });
+        if (existEmail) {
+            await t.rollback();
+            return { error: "Cet email est déjà utilisé" };
+        }
+        utilisateur.email = email;
+        }
+
+        // Vérification téléphone
+        if (telephone && telephone !== utilisateur.telephone) {
+        const existTel = await Utilisateur.findOne({
+            where: { telephone },
+            transaction: t
+        });
+        if (existTel) {
+            await t.rollback();
+            return { error: "Ce numéro de téléphone est déjà utilisé" };
+        }
+        utilisateur.telephone = telephone;
+        }
+
+        // Vérification CIN
+        if (
+        carte_identite_national_num &&
+        carte_identite_national_num !== utilisateur.carte_identite_national_num
+        ) {
+        const existCIN = await Utilisateur.findOne({
+            where: { carte_identite_national_num },
+            transaction: t
+        });
+        if (existCIN) {
+            await t.rollback();
+            return { error: "Le numéro CIN est déjà utilisé" };
+        }
+        utilisateur.carte_identite_national_num = carte_identite_national_num;
+        }
+
+        if (nom) utilisateur.nom = nom;
+        if (prenom) utilisateur.prenom = prenom;
+        if (adresse !== undefined) utilisateur.adresse = adresse;
+        if (photoProfil) utilisateur.photoProfil = photoProfil;
+
+        await utilisateur.save({ transaction: t });
+        await t.commit();
+
+        return {
+        message: "Profil modifié avec succès",
+        utilisateur
+        };
+
+    } catch (error) {
+        await t.rollback();
+        throw error;
+    }
+}
+
+// -------------------- RECHERCHE CLIENT --------------------
+static async rechercherClient({
+  carte_identite_national_num,
+  telephone,
+  nom,
+  prenom
+}) {
+  try {
+    const whereClause = {};
+
+    if (carte_identite_national_num) {
+      whereClause.carte_identite_national_num = carte_identite_national_num;
+    }
+
+    if (telephone) {
+      whereClause.telephone = telephone;
+    }
+
+    if (nom) {
+      whereClause.nom = { [Op.iLike]: `%${nom}%` }; // insensible à la casse (PostgreSQL)
+    }
+
+    if (prenom) {
+      whereClause.prenom = { [Op.iLike]: `%${prenom}%` };
+    }
+
+    // Si aucun critère
+    if (Object.keys(whereClause).length === 0) {
+      return { error: "Veuillez fournir au moins un critère de recherche" };
+    }
+
+    const utilisateurs = await Utilisateur.findAll({
+      where: whereClause,
+      attributes: { exclude: ['mot_de_passe'] } // sécurité
+    });
+
+    if (!utilisateurs.length) {
+      return { message: "Aucun client trouvé" };
+    }
+
+    return {
+      message: "Client(s) trouvé(s)",
+      utilisateurs
+    };
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+// -------------------- LISTE DES CLIENTS (PAGINATION) --------------------
+static async listerClients({ page = 1, limit = 10 }) {
+  try {
+    const currentPage = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+
+    const offset = (currentPage - 1) * pageSize;
+
+    const { count, rows } = await Utilisateur.findAndCountAll({
+      where: {
+        role: 'Client'
+      },
+      attributes: { exclude: ['mot_de_passe'] },
+      limit: pageSize,
+      offset,
+      order: [['createdAt', 'DESC']]
+    });
+
+    const totalPages = Math.ceil(count / pageSize);
+
+    return {
+      message: "Liste des clients",
+      pagination: {
+        totalClients: count,
+        totalPages,
+        currentPage,
+        pageSize
+      },
+      utilisateurs: rows
+    };
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+}
+
+module.exports = GestionClientService;
