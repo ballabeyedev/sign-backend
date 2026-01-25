@@ -2,16 +2,16 @@ const { Document, Utilisateur, TypeFacture } = require('../../models');
 const fs = require('fs');
 const path = require('path');
 const templateDocument = require('../../templates/pdf/document.template');
+const templateConsentement = require('../../templates/pdf/consentement.template');
 const { Op } = require('sequelize');
 const { sendEmail } = require('../../utils/mailer');
 const documentMailTemplateClient = require('../../templates/mail/documentMailTemplateClient');
 const documentMailTemplateProfesionnel = require('../../templates/mail/documentMailTemplateProfesionnel');
-const crypto = require('crypto');
 const puppeteer = require('puppeteer');
 
 class GestionDocumentService {
 
-  //GÉNÉRER NUMÉRO FACTURE
+  // GÉNÉRER NUMÉRO FACTURE
   static async genererNumeroFacture() {
     const annee = new Date().getFullYear();
 
@@ -33,7 +33,7 @@ class GestionDocumentService {
     return `FAC-${annee}-${String(compteur).padStart(4, '0')}`;
   }
 
-  //CRÉER DOCUMENT
+  // CRÉER DOCUMENT
   static async creerDocument({
     clientId,
     typeFactureId,
@@ -45,33 +45,28 @@ class GestionDocumentService {
     montant,
     moyen_paiement = 'CASH',
     utilisateurConnecte
-  }){
+  }) {
     try {
-      //Vérification client
+      // Vérification client
       const client = await Utilisateur.findOne({
         where: { id: clientId, role: 'Client' }
       });
+      if (!client) return { error: 'Client non trouvé' };
 
-      if (!client) {
-        return { error: 'Client non trouvé' };
-      }
-
+      // Vérification type facture
       const typeFacture = await TypeFacture.findOne({
         where: { id: typeFactureId, actif: true }
       });
+      if (!typeFacture) return { error: 'Type de facture invalide ou inactif' };
 
-      if (!typeFacture) {
-        return { error: 'Type de facture invalide ou inactif' };
-      }
-
-      //Numéro facture
+      // Numéro facture
       const numero_facture = await this.genererNumeroFacture();
 
       // Validation montant et avance
       if (montant < 0) return { error: "Le montant doit être >= 0" };
       if (avance && avance < 0) return { error: "L'avance doit être >= 0" };
 
-      //Données pour le template PDF
+      // Données pour le template PDF
       const donneesTemplate = {
         numeroFacture: numero_facture,
         typeDocument: typeFacture.libelle,
@@ -87,11 +82,19 @@ class GestionDocumentService {
         dateGeneration: new Date().toLocaleDateString('fr-FR')
       };
 
+      const donneesConsentement = {
+        numeroFacture: numero_facture,
+        nomClient: `${client.nom} ${client.prenom}`,
+        nomUtilisateur: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
+        montant,
+        delais_execution
+      };
 
-      //Génération HTML
+      // Génération HTML
       const html = templateDocument(donneesTemplate);
+      const htmlConsentement = templateConsentement(donneesConsentement);
 
-      //Dossier PDF
+      // Dossier PDF
       const dossierDocuments = path.join(__dirname, '../../uploads/documents');
       if (!fs.existsSync(dossierDocuments)) {
         fs.mkdirSync(dossierDocuments, { recursive: true });
@@ -106,24 +109,32 @@ class GestionDocumentService {
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
 
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-
-      await page.pdf({
+      // Document principal
+      const pageDoc = await browser.newPage();
+      await pageDoc.setContent(html, { waitUntil: 'networkidle0' });
+      await pageDoc.pdf({
         path: fichierPath,
         format: 'A4',
         printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
+        margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
+      });
+
+      // Consentement (si besoin de générer un PDF séparé)
+      const fichierConsentementNom = `${numero_facture}_consentement.pdf`;
+      const fichierConsentementPath = path.join(dossierDocuments, fichierConsentementNom);
+
+      const pageConsent = await browser.newPage();
+      await pageConsent.setContent(htmlConsentement, { waitUntil: 'networkidle0' });
+      await pageConsent.pdf({
+        path: fichierConsentementPath,
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
       });
 
       await browser.close();
 
-      //Sauvegarde DB
+      // Sauvegarde DB
       const document = await Document.create({
         numero_facture,
         clientId,
@@ -138,7 +149,7 @@ class GestionDocumentService {
         status: 'EN_ATTENTE_SIGNATURE_CLIENT'
       });
 
-      //Email client
+      // Email client
       await sendEmail({
         to: client.email,
         subject: `Signature requise – Document ${numero_facture}`,
@@ -146,10 +157,14 @@ class GestionDocumentService {
           nomClient: `${client.nom} ${client.prenom}`,
           numero_facture,
           type: typeFacture.libelle,
-        })
+        }),
+        attachments: [
+          { filename: fichierNom, path: fichierPath, contentType: 'application/pdf' },
+          { filename: fichierConsentementNom, path: fichierConsentementPath, contentType: 'application/pdf' }
+        ]
       });
 
-      // 📧 Email professionnel
+      // Email professionnel
       await sendEmail({
         to: utilisateurConnecte.email,
         subject: `Copie du document ${numero_facture}`,
@@ -159,11 +174,8 @@ class GestionDocumentService {
           type: typeFacture.libelle,
         }),
         attachments: [
-          {
-            filename: fichierNom,
-            path: fichierPath,
-            contentType: 'application/pdf'
-          }
+          { filename: fichierNom, path: fichierPath, contentType: 'application/pdf' },
+          { filename: fichierConsentementNom, path: fichierConsentementPath, contentType: 'application/pdf' }
         ]
       });
 

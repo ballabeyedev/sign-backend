@@ -84,7 +84,8 @@ th { background-color: #f2f2f2; }
 <div class="signatures">
   <div class="signature-box">
     <strong>Signature Professionnel</strong>
-    
+
+    <p style="font-size:11px;">${nomUtilisateur}</p>
     <p style="font-size:11px;">Signé le ${dateGeneration}</p>
   </div>
 
