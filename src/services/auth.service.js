@@ -76,11 +76,25 @@ class AuthService {
       where: isEmail ? { email: identifiant } : { telephone: identifiant },
     });
 
-    if (!utilisateur) return { error: 'Identifiant ou mot de passe incorrect' };
-    if (utilisateur.statut !== 'actif') return { error: `Compte ${utilisateur.statut}` };
+    if (!utilisateur) 
+      return { 
+        success: false,
+        error: 'Identifiant ou mot de passe incorrect' 
+      };
+     if (utilisateur.statut !== 'actif') {
+        return {
+          success: false,
+          message: `Compte ${utilisateur.statut}`
+        };
+      }
 
     const valid = await bcrypt.compare(mot_de_passe, utilisateur.mot_de_passe);
-    if (!valid) return { error: 'Mot de passe incorrect' };
+    if (!valid) {
+      return {
+        success: false,
+        message: 'Identifiant ou mot de passe incorrect'
+      };
+    }
 
     const token = jwt.sign({
       id: utilisateur.id,
@@ -94,7 +108,7 @@ class AuthService {
       role: utilisateur.role
     }, jwtConfig.secret, { expiresIn: jwtConfig.expiresIn });
 
-    return { token, utilisateur };
+    return {success: true, token, utilisateur };
   }
 
 }
