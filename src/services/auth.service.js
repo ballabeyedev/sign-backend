@@ -11,63 +11,88 @@ const { uploadImage } = require('../middlewares/uploadService'); // ton upload v
 class AuthService {
 
   // -------------------- INSCRIPTION --------------------
-  static async register({
-    nom,
-    prenom,
-    email,
-    mot_de_passe,
-    adresse,
-    telephone,
-    photoProfil,
-    carte_identite_national_num,
-    role = 'Client'
-  }) {
-    const t = await sequelize.transaction();
-    try {
-      const exist = await Utilisateur.findOne({ where: { email }, transaction: t });
-      if (exist) {
-        await t.rollback();
-        return { error: 'Cet utilisateur existe déjà.' };
-      }
+  // -------------------- INSCRIPTION --------------------
+static async register({
+  nom,
+  prenom,
+  email,
+  mot_de_passe,
+  adresse,
+  telephone,
+  numero_cni,
+  photoProfil,
+  role = 'Client'
+}) {
+  const t = await sequelize.transaction();
 
-      const hashedPassword = await bcrypt.hash(mot_de_passe, bcryptConfig.saltRounds);
+  try {
+    const emailClean = email.trim().toLowerCase();
 
-      let photoUrl = null;
-      if (photoProfil) {
-        photoUrl = await uploadImage(photoProfil.path);
-      }
+    const exist = await Utilisateur.findOne({
+      where: { email: emailClean },
+      transaction: t
+    });
 
-      const utilisateur = await Utilisateur.create({
-        nom,
-        prenom,
-        email,
-        mot_de_passe: hashedPassword,
-        adresse,
-        telephone,
-        photoProfil: photoUrl,
-        carte_identite_national_num,
-        role
-      }, { transaction: t });
-
-      await t.commit();
-
-      const html = welcomeTemplate({ nom: utilisateur.nom, prenom: utilisateur.prenom });
-      try {
-        await sendEmail({
-          to: utilisateur.email,
-          subject: "Bienvenue sur Sign !",
-          html
-        });
-      } catch (mailError) {
-        console.error("Erreur envoi email bienvenue:", mailError);
-      }
-
-      return { utilisateur };
-    } catch (err) {
+    if (exist) {
       await t.rollback();
-      throw err;
+      return {
+        success: false,
+        message: "Cet email est déjà utilisé"
+      };
     }
+
+    const hashedPassword = await bcrypt.hash(
+      mot_de_passe,
+      bcryptConfig.saltRounds
+    );
+
+    let photoUrl = null;
+    if (photoProfil) {
+      photoUrl = await uploadImage(photoProfil.path);
+    }
+
+    const utilisateur = await Utilisateur.create({
+      nom,
+      prenom,
+      email: emailClean,
+      mot_de_passe: hashedPassword,
+      adresse,
+      telephone,
+      carte_identite_national_num: numero_cni,
+      photoProfil: photoUrl,
+      role
+    }, { transaction: t });
+
+    await t.commit();
+
+    // Email de bienvenue (non bloquant)
+    try {
+      const html = welcomeTemplate({
+        nom: utilisateur.nom,
+        prenom: utilisateur.prenom
+      });
+
+      await sendEmail({
+        to: utilisateur.email,
+        subject: "Bienvenue sur Sign !",
+        html
+      });
+    } catch (mailError) {
+      console.error("Erreur email:", mailError);
+    }
+
+    return {
+      success: true,
+      message: "Inscription réussie",
+      utilisateur
+    };
+
+  } catch (err) {
+    await t.rollback();
+    throw err;
   }
+}
+
 
   // -------------------- CONNEXION --------------------
   static async login({ identifiant, mot_de_passe }) {
