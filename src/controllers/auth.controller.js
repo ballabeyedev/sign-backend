@@ -2,7 +2,6 @@ const AuthService = require('../services/auth.service');
 const formatUser = require('../utils/formatUser');
 
 exports.inscriptionUser = async (req, res) => {
-  // On récupère tous les champs depuis le body
   const {
     nom,
     prenom,
@@ -14,27 +13,32 @@ exports.inscriptionUser = async (req, res) => {
     role
   } = req.body;
 
-  const photoProfil = req.file ? req.file : null;
+  const photoProfil = req.file || null;
 
   try {
-    const { utilisateur, error } = await AuthService.register({
+    const result = await AuthService.register({
       nom,
       prenom,
       email,
       mot_de_passe,
       adresse,
       telephone,
+      numero_cni: carte_identite_national_num,
       photoProfil,
-      carte_identite_national_num,
       role
     });
 
-    if (error) return res.status(400).json({ message: error });
+    if (!result.success) {
+      return res.status(400).json({
+        message: result.message
+      });
+    }
 
     return res.status(201).json({
-      message: 'Inscription réussie',
-      utilisateur: formatUser(utilisateur)
+      message: result.message,
+      utilisateur: formatUser(result.utilisateur)
     });
+
   } catch (err) {
     console.error('Erreur lors de l’inscription :', err);
     return res.status(500).json({
@@ -43,6 +47,7 @@ exports.inscriptionUser = async (req, res) => {
     });
   }
 };
+
 
 exports.login = async (req, res) => {
   const { identifiant, mot_de_passe } = req.body;

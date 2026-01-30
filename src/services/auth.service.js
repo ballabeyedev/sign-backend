@@ -11,7 +11,6 @@ const { uploadImage } = require('../middlewares/uploadService'); // ton upload v
 class AuthService {
 
   // -------------------- INSCRIPTION --------------------
-  // -------------------- INSCRIPTION --------------------
 static async register({
   nom,
   prenom,
