@@ -26,8 +26,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Définition des routes
 app.use('/sign/auth', authRoutes);
-app.use('/account', accountRoutes);
-app.use('/professionnel/document', generationrapportRoutes);
-app.use('/professionnel/client', gestionclientRoutes);
+app.use('/sign/account', accountRoutes);
+app.use('/sign/professionnel/document', generationrapportRoutes);
+app.use('/sign/professionnel/client', gestionclientRoutes);
 
 module.exports = app;
