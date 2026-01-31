@@ -46,9 +46,11 @@ static async register({
     );
 
     let photoUrl = null;
-    if (photoProfil) {
+
+    if (photoProfil && photoProfil.path) {
       photoUrl = await uploadImage(photoProfil.path);
     }
+
 
     const utilisateur = await Utilisateur.create({
       nom,
