@@ -1,27 +1,27 @@
 module.exports = ({
   numeroFacture,
-  typeDocument,
   nomClient,
   nomUtilisateur,
-  description,
   delais_execution,
   date_execution,
   avance,
   lieu_execution,
-  montant,
   moyen_paiement,
   dateGeneration,
+  items = []
 }) => {
 
-
   const logoUrl = 'file:///' + (process.cwd() + '/uploads/logo/logo-sign.png').replace(/\\/g, '/');
+
+  // Calcul du montant total
+  const montantTotal = items.reduce((total, item) => total + (item.quantite * item.prix_unitaire), 0);
 
   return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>${typeDocument || 'Document'}</title>
+<title>Document</title>
 <style>
 @page { size: A4; margin: 20mm 15mm; }
 body { font-family: Arial, sans-serif; font-size: 14px; color: #000; }
@@ -31,7 +31,7 @@ body { font-family: Arial, sans-serif; font-size: 14px; color: #000; }
 .infos { display: flex; justify-content: space-between; margin-bottom: 30px; }
 .infos-left, .infos-right { width: 48%; }
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-th, td { border: 1px solid #000; padding: 10px; }
+th, td { border: 1px solid #000; padding: 10px; text-align: center; }
 th { background-color: #f2f2f2; }
 .signatures { margin-top: 70px; display: flex; justify-content: space-between; }
 .signature-box { width: 45%; text-align: center; }
@@ -46,7 +46,7 @@ th { background-color: #f2f2f2; }
 </div>
 
 <div class="titre">
-  ${(typeDocument || 'DOCUMENT').toUpperCase()}
+  DOCUMENT
 </div>
 
 <div class="infos">
@@ -54,10 +54,9 @@ th { background-color: #f2f2f2; }
     <p><strong>Numéro :</strong> ${numeroFacture}</p>
     <p><strong>Client :</strong> ${nomClient}</p>
     <p><strong>Professionnel :</strong> ${nomUtilisateur}</p>
-    <p><strong>Description :</strong> ${description}</p>
     <p><strong>Exécution :</strong> ${delais_execution} / ${date_execution}</p>
-    <p><strong>Avance :</strong> ${avance}</p>
-    <p><strong>Lieu :</strong> ${lieu_execution}</p>
+    <p><strong>Avance :</strong> ${avance ? `${avance} FCFA` : '-'}</p>
+    <p><strong>Lieu :</strong> ${lieu_execution || '-'}</p>
   </div>
   <div class="infos-right">
     <p><strong>Date :</strong><br>${dateGeneration}</p>
@@ -67,33 +66,27 @@ th { background-color: #f2f2f2; }
 <table>
 <thead>
 <tr>
-  <th>Intitulé</th>
-  <th>Montant</th>
-  <th>Paiement</th>
+  <th>Désignation</th>
+  <th>Quantité</th>
+  <th>Prix Unitaire</th>
+  <th>Sous-Total</th>
 </tr>
 </thead>
 <tbody>
+${items.map(item => `
 <tr>
-  <td>${description}</td>
-  <td>${montant} FCFA</td>
-  <td>${moyen_paiement}</td>
+  <td>${item.designation}</td>
+  <td>${item.quantite}</td>
+  <td>${item.prix_unitaire.toLocaleString()} FCFA</td>
+  <td>${(item.quantite * item.prix_unitaire).toLocaleString()} FCFA</td>
+</tr>
+`).join('')}
+<tr>
+  <td colspan="3" style="text-align:right;font-weight:bold;">Montant Total</td>
+  <td style="font-weight:bold;">${montantTotal.toLocaleString()} FCFA</td>
 </tr>
 </tbody>
 </table>
-
-<div class="signatures">
-  <div class="signature-box">
-    <strong>Signature Professionnel</strong>
-
-    <p style="font-size:11px;">${nomUtilisateur}</p>
-    <p style="font-size:11px;">Signé le ${dateGeneration}</p>
-  </div>
-
-  <div class="signature-box">
-    <strong>Signature Client</strong>
-    
-  </div>
-</div>
 
 <div class="footer">
 © ${new Date().getFullYear()} – Sign
