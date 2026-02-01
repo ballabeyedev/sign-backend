@@ -7,7 +7,7 @@ const { Op } = require('sequelize');
 const { sendEmail } = require('../../utils/mailer');
 const documentMailTemplateClient = require('../../templates/mail/documentMailTemplateClient');
 const documentMailTemplateProfesionnel = require('../../templates/mail/documentMailTemplateProfesionnel');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 
 
 class GestionDocumentService {
@@ -105,8 +105,7 @@ class GestionDocumentService {
 
       // Génération PDF
       const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: '/usr/bin/chromium-browser', // chemin vers Chromium sur Render
+        headless: 'new',   // ou true
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
 
