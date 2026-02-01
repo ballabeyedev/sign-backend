@@ -8,7 +8,6 @@ const { sendEmail } = require('../../utils/mailer');
 const documentMailTemplateClient = require('../../templates/mail/documentMailTemplateClient');
 const documentMailTemplateProfesionnel = require('../../templates/mail/documentMailTemplateProfesionnel');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
-const htmlToText = require('html-to-text'); // pour convertir HTML en texte simple si nécessaire
 
 class GestionDocumentService {
 
@@ -76,6 +75,9 @@ class GestionDocumentService {
       // Génération du contenu HTML
       const html = templateDocument(donneesTemplate);
 
+      // Nettoyer HTML en texte simple pour pdf-lib
+      const textContent = html.replace(/<\/?[^>]+(>|$)/g, ""); // supprime toutes les balises HTML
+
       // Dossier PDF
       const dossierDocuments = path.join(__dirname, '../../uploads/documents');
       if (!fs.existsSync(dossierDocuments)) fs.mkdirSync(dossierDocuments, { recursive: true });
@@ -83,15 +85,12 @@ class GestionDocumentService {
       const fichierNom = `${numero_facture}.pdf`;
       const fichierPath = path.join(dossierDocuments, fichierNom);
 
-      // 🔹 Génération PDF avec pdf-lib
+      // Génération PDF avec pdf-lib
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage();
       const { width, height } = page.getSize();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const fontSize = 12;
-
-      // Convertir HTML en texte simple (simple et rapide)
-      const textContent = htmlToText.convert(html, { wordwrap: 100 });
 
       // Ajouter le texte au PDF
       page.drawText(textContent, {
@@ -103,7 +102,6 @@ class GestionDocumentService {
         lineHeight: 15,
       });
 
-      // Sauvegarde du PDF
       const pdfBytes = await pdfDoc.save();
       fs.writeFileSync(fichierPath, pdfBytes);
 
