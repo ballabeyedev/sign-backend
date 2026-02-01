@@ -7,7 +7,8 @@ const { Op } = require('sequelize');
 const { sendEmail } = require('../../utils/mailer');
 const documentMailTemplateClient = require('../../templates/mail/documentMailTemplateClient');
 const documentMailTemplateProfesionnel = require('../../templates/mail/documentMailTemplateProfesionnel');
-const pdf = require('html-pdf-node'); // <-- Nouveau package
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const htmlToText = require('html-to-text'); // pour convertir HTML en texte simple si nécessaire
 
 class GestionDocumentService {
 
@@ -16,11 +17,7 @@ class GestionDocumentService {
     const annee = new Date().getFullYear();
 
     const dernierDocument = await Document.findOne({
-      where: {
-        numero_facture: {
-          [Op.like]: `FAC-${annee}-%`
-        }
-      },
+      where: { numero_facture: { [Op.like]: `FAC-${annee}-%` } },
       order: [['createdAt', 'DESC']]
     });
 
@@ -49,24 +46,14 @@ class GestionDocumentService {
     try {
       // 1️⃣ Vérifier client
       const client = await Utilisateur.findByPk(clientId);
-      if (!client) {
-        return { error: 'Client non trouvé' };
-      }
+      if (!client) return { error: 'Client non trouvé' };
 
       // 2️⃣ Vérifier items
-      if (!items || !Array.isArray(items) || items.length === 0) {
-        return { error: 'Aucun produit fourni' };
-      }
+      if (!items || !Array.isArray(items) || items.length === 0) return { error: 'Aucun produit fourni' };
 
       // 3️⃣ Calcul montant total
-      const montant = items.reduce(
-        (total, item) => total + (item.quantite * item.prix_unitaire),
-        0
-      );
-
-      if (montant <= 0) {
-        return { error: 'Montant invalide' };
-      }
+      const montant = items.reduce((total, item) => total + (item.quantite * item.prix_unitaire), 0);
+      if (montant <= 0) return { error: 'Montant invalide' };
 
       // 4️⃣ Numéro facture
       const numero_facture = await this.genererNumeroFacture();
@@ -86,26 +73,41 @@ class GestionDocumentService {
         dateGeneration: new Date().toLocaleDateString('fr-FR')
       };
 
-      // Génération HTML
+      // Génération du contenu HTML
       const html = templateDocument(donneesTemplate);
 
       // Dossier PDF
       const dossierDocuments = path.join(__dirname, '../../uploads/documents');
-      if (!fs.existsSync(dossierDocuments)) {
-        fs.mkdirSync(dossierDocuments, { recursive: true });
-      }
+      if (!fs.existsSync(dossierDocuments)) fs.mkdirSync(dossierDocuments, { recursive: true });
 
       const fichierNom = `${numero_facture}.pdf`;
       const fichierPath = path.join(dossierDocuments, fichierNom);
 
-      // 🔹 Génération PDF avec html-pdf-node
-      const options = { format: 'A4', printBackground: true };
-      const file = { content: html };
-      await pdf.generatePdf(file, options).then(pdfBuffer => {
-        fs.writeFileSync(fichierPath, pdfBuffer);
+      // 🔹 Génération PDF avec pdf-lib
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage();
+      const { width, height } = page.getSize();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontSize = 12;
+
+      // Convertir HTML en texte simple (simple et rapide)
+      const textContent = htmlToText.convert(html, { wordwrap: 100 });
+
+      // Ajouter le texte au PDF
+      page.drawText(textContent, {
+        x: 50,
+        y: height - 50,
+        size: fontSize,
+        font,
+        color: rgb(0, 0, 0),
+        lineHeight: 15,
       });
 
-      // 5️⃣ Création Document
+      // Sauvegarde du PDF
+      const pdfBytes = await pdfDoc.save();
+      fs.writeFileSync(fichierPath, pdfBytes);
+
+      // 5️⃣ Création Document en DB
       const document = await Document.create({
         numero_facture,
         clientId,
@@ -130,38 +132,25 @@ class GestionDocumentService {
       // 7️⃣ Commit DB
       await transaction.commit();
 
-      // Email client
+      // 8️⃣ Envoi des emails
       await sendEmail({
         to: client.email,
         subject: `Voici votre facture – ${numero_facture}`,
-        html: documentMailTemplateClient({
-          nomClient: `${client.nom} ${client.prenom}`,
-          numero_facture
-        }),
-        attachments: [
-          { filename: fichierNom, path: fichierPath }
-        ]
+        html: documentMailTemplateClient({ nomClient: `${client.nom} ${client.prenom}`, numero_facture }),
+        attachments: [{ filename: fichierNom, path: fichierPath }]
       });
 
-      // Email professionnel
       await sendEmail({
         to: utilisateurConnecte.email,
         subject: `Copie du document ${numero_facture}`,
-        html: documentMailTemplateProfesionnel({
-          nomProfesionnel: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
-          numero_facture
-        }),
-        attachments: [
-          { filename: fichierNom, path: fichierPath }
-        ]
+        html: documentMailTemplateProfesionnel({ nomProfesionnel: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`, numero_facture }),
+        attachments: [{ filename: fichierNom, path: fichierPath }]
       });
 
       return { document };
 
     } catch (error) {
-      if (!transaction.finished) {
-        await transaction.rollback();
-      }
+      if (!transaction.finished) await transaction.rollback();
       console.error('❌ Erreur creerDocument:', error);
       throw error;
     }
