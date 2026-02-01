@@ -7,8 +7,7 @@ const { Op } = require('sequelize');
 const { sendEmail } = require('../../utils/mailer');
 const documentMailTemplateClient = require('../../templates/mail/documentMailTemplateClient');
 const documentMailTemplateProfesionnel = require('../../templates/mail/documentMailTemplateProfesionnel');
-const puppeteer = require('puppeteer');
-
+const pdf = require('html-pdf-node'); // <-- Nouveau package
 
 class GestionDocumentService {
 
@@ -26,7 +25,6 @@ class GestionDocumentService {
     });
 
     let compteur = 1;
-
     if (dernierDocument) {
       compteur = parseInt(dernierDocument.numero_facture.split('-')[2]) + 1;
     }
@@ -103,21 +101,12 @@ class GestionDocumentService {
       const fichierNom = `${numero_facture}.pdf`;
       const fichierPath = path.join(dossierDocuments, fichierNom);
 
-      // Génération PDF
-      const browser = await puppeteer.launch({
-        headless: 'true',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      // 🔹 Génération PDF avec html-pdf-node
+      const options = { format: 'A4', printBackground: true };
+      const file = { content: html };
+      await pdf.generatePdf(file, options).then(pdfBuffer => {
+        fs.writeFileSync(fichierPath, pdfBuffer);
       });
-
-      const pageDoc = await browser.newPage();
-      await pageDoc.setContent(html, { waitUntil: 'networkidle0' });
-      await pageDoc.pdf({
-        path: fichierPath,
-        format: 'A4',
-        printBackground: true
-      });
-
-      await browser.close();
 
       // 5️⃣ Création Document
       const document = await Document.create({
