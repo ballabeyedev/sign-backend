@@ -1,5 +1,4 @@
 const Document = require('./document.model');
-const TypeFacture = require('./typeFacture.model');
 const Utilisateur = require('./utilisateur.model');
 const DocumentItem = require('./documentItem.model');
 
