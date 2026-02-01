@@ -1,25 +1,53 @@
 const GestionDocumentService = require('../../services/professionnel/generationrapport.service');
 
 exports.creerDocument = async (req, res) => {
-  const utilisateurConnecte = req.user;
-  const { clientId, typeFactureId, description, delais_execution, date_execution, avance,
-    lieu_execution, montant, moyen_paiement } = req.body;
-
   try {
+    const utilisateurConnecte = req.user;
+
+    const {
+      clientId,
+      delais_execution,
+      date_execution,
+      avance,
+      lieu_execution,
+      moyen_paiement,
+      items
+    } = req.body;
+
+    // Appel du service
     const result = await GestionDocumentService.creerDocument({
-      clientId, typeFactureId, description, delais_execution, date_execution, avance,
-      lieu_execution, montant, moyen_paiement, utilisateurConnecte
+      clientId,
+      delais_execution,
+      date_execution,
+      avance,
+      lieu_execution,
+      moyen_paiement,
+      items,
+      utilisateurConnecte
     });
 
-    if (result.error) return res.status(400).json({ message: result.error });
+    if (result.error) {
+      return res.status(400).json({
+        success: false,
+        message: result.error
+      });
+    }
 
     return res.status(201).json({
-      message: 'Document généré et envoyé pour signature avec succès',
+      success: true,
+      message: 'Document créé avec succès',
+      data: {
+        documentId: result.document.id,
+        numero_facture: result.document.numero_facture
+      }
     });
 
-  } catch (err) {
-    console.error('Erreur création document :', err);
-    return res.status(500).json({ message: 'Erreur serveur lors de la génération du document', erreur: err.message });
+  } catch (error) {
+    console.error('❌ Erreur création document :', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la création du document',
+      error: error.message
+    });
   }
 };
-

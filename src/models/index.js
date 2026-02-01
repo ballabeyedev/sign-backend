@@ -1,25 +1,26 @@
 const Document = require('./document.model');
 const TypeFacture = require('./typeFacture.model');
 const Utilisateur = require('./utilisateur.model');
+const DocumentItem = require('./documentItem.model');
 
 Document.belongsTo(Utilisateur, {
   foreignKey: 'clientId',
   as: 'client'
 });
 
-Document.belongsTo(TypeFacture, {
-  foreignKey: 'typeFactureId',
-  as: 'typeFacture'
+Document.hasMany(DocumentItem, {
+  foreignKey: 'documentId',
+  onDelete: 'CASCADE'
 });
 
-TypeFacture.hasMany(Document, {
-  foreignKey: 'typeFactureId',
-  as: 'documents',
-  onDelete: 'RESTRICT'
+DocumentItem.belongsTo(Document, {
+  foreignKey: 'documentId'
 });
+
+
 
 module.exports = {
   Document,
-  TypeFacture,
+  DocumentItem,
   Utilisateur
 };

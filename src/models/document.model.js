@@ -12,14 +12,6 @@ const Document = sequelize.define('Document', {
     allowNull: false,
     unique: true
   },
-  typeFactureId: {
-    type: DataTypes.UUID,
-    allowNull: false
-  },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: false
-  },
   delais_execution: {
     type: DataTypes.STRING
   },
@@ -28,6 +20,7 @@ const Document = sequelize.define('Document', {
   },
   avance: {
     type: DataTypes.FLOAT,
+    defaultValue: 0,
     validate: { min: 0 }
   },
   lieu_execution: {
@@ -39,20 +32,12 @@ const Document = sequelize.define('Document', {
     validate: { min: 0 }
   },
   moyen_paiement: {
-    type: DataTypes.ENUM('CASH', 'CARD', 'TRANSFER', 'CHEQUE'),
-    defaultValue: 'CASH'
+    type: DataTypes.ENUM('ESPECES', 'MOBILE MONEY', 'VIREMENT', 'AUTRE'),
+    defaultValue: 'ESPECES'
   },
   clientId: {
     type: DataTypes.UUID,
     allowNull: false
-  },
-  status: {
-    type: DataTypes.ENUM(
-      'BROUILLON',
-      'EN_ATTENTE_SIGNATURE_CLIENT',
-      'SIGNE'
-    ),
-    defaultValue: 'BROUILLON'
   }
 }, {
   tableName: 'documents',
