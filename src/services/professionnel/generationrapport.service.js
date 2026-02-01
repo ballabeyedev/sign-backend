@@ -105,7 +105,7 @@ class GestionDocumentService {
 
       // Génération PDF
       const browser = await puppeteer.launch({
-        headless: 'new',   // ou true
+        headless: 'true',
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
 
