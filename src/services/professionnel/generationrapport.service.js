@@ -50,13 +50,11 @@ class GestionDocumentService {
       // 1️⃣ Vérifier client
       const client = await Utilisateur.findByPk(clientId);
       if (!client) {
-        await transaction.rollback();
         return { error: 'Client non trouvé' };
       }
 
       // 2️⃣ Vérifier items
       if (!items || !Array.isArray(items) || items.length === 0) {
-        await transaction.rollback();
         return { error: 'Aucun produit fourni' };
       }
 
@@ -67,7 +65,6 @@ class GestionDocumentService {
       );
 
       if (montant <= 0) {
-        await transaction.rollback();
         return { error: 'Montant invalide' };
       }
 
@@ -162,7 +159,9 @@ class GestionDocumentService {
       return { document };
 
     } catch (error) {
-      await transaction.rollback();
+      if (!transaction.finished) {
+        await transaction.rollback();
+      }
       console.error('❌ Erreur creerDocument:', error);
       throw error;
     }
