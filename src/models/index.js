@@ -9,6 +9,7 @@ Document.belongsTo(Utilisateur, {
 
 Document.hasMany(DocumentItem, {
   foreignKey: 'documentId',
+  as: 'items',
   onDelete: 'CASCADE'
 });
 
