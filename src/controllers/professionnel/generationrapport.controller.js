@@ -51,3 +51,25 @@ exports.creerDocument = async (req, res) => {
     });
   }
 };
+
+// -------------------- LISTE DES CLIENTS (PAGINATION) --------------------
+exports.listerDocuments = async (req, res) => {
+  try {
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+
+    const result = await GestionDocumentService.listerDocument({
+      page,
+      limit
+    });
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error('Erreur controller listerClients:', error);
+    return res.status(500).json({
+      message: 'Erreur serveur lors de la récupération des clients',
+      erreur: error.message
+    });
+  }
+}

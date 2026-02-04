@@ -241,6 +241,48 @@ class GestionDocumentService {
       console.error('❌ Erreur envoi email:', err);
     }
   }
+
+  static async listerDocument({ page = 1, limit = 10 }) {
+  try {
+    const currentPage = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+    const offset = (currentPage - 1) * pageSize;
+
+    const { count, rows } = await Document.findAndCountAll({
+      include: [
+        {
+          model: DocumentItem,
+          as: 'items',
+          attributes: ['id', 'designation', 'quantite', 'prix_unitaire']
+        }
+      ],
+      limit: pageSize,
+      offset,
+      order: [['createdAt', 'DESC']]
+    });
+
+    const totalPages = Math.ceil(count / pageSize);
+
+    return {
+      message: 'Liste des documents',
+      pagination: {
+        totalDocuments: count,
+        totalPages,
+        currentPage,
+        pageSize
+      },
+      documents: rows
+    };
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+    
+
+
 }
 
 module.exports = GestionDocumentService;

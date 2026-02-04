@@ -4,5 +4,9 @@ const auth = require('../../middlewares/auth.middleware');
 const gestionDocumentController = require('../../controllers/professionnel/generationrapport.controller');
 
 router.post('/creer-document', auth, gestionDocumentController.creerDocument);
-
+router.get(
+  '/liste-documents',
+  auth,
+  gestionDocumentController.listerDocuments
+);
 module.exports = router;
