@@ -4,6 +4,6 @@ const auth = require('../../middlewares/auth.middleware');
 const gestionDocumentController = require('../../controllers/professionnel/generationrapport.controller');
 
 router.post('/creer-document', auth, gestionDocumentController.creerDocument);
-router.get('/mes-documents', auth, documentController.getMesDocuments);
+router.get('/mes-documents', auth, gestionDocumentController.getMesDocuments);
 
 module.exports = router;
