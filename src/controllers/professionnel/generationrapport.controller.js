@@ -53,3 +53,33 @@ exports.creerDocument = async (req, res) => {
   }
 };
 
+exports.getMesDocuments = async (req, res) => {
+  try {
+    const utilisateurConnecte = req.user;
+
+    const result = await GestionDocumentService.getMesDocuments({
+      utilisateurConnecte
+    });
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.error
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: result.data
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur controller getMesDocuments:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+      error: error.message
+    });
+  }
+};
+

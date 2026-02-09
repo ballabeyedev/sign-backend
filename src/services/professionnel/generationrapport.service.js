@@ -204,6 +204,41 @@ class GestionDocumentService {
       attachments: [attachment]
     });
   }
+
+  static async getMesDocuments({ utilisateurConnecte }) {
+    try {
+      const documents = await Document.findAll({
+        where: {
+          professionnelId: utilisateurConnecte.id
+        },
+        include: [
+          {
+            model: Utilisateur,
+            as: 'client',
+            attributes: ['id', 'nom', 'prenom', 'email']
+          },
+          {
+            model: DocumentItem,
+            as: 'items'
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      return {
+        success: true,
+        data: documents
+      };
+
+    } catch (error) {
+      console.error('❌ Erreur getMesDocuments:', error);
+      return {
+        success: false,
+        error: 'Erreur lors de la récupération des documents'
+      };
+    }
+  }
+
 }
 
 // 🔧 PDF
@@ -217,5 +252,6 @@ async function generatePDFBuffer(html) {
     });
   });
 }
+
 
 module.exports = GestionDocumentService;
