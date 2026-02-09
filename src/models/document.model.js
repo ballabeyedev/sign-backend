@@ -45,7 +45,7 @@ const Document = sequelize.define('Document', {
   },
   document_pdf: {
     type: DataTypes.TEXT('long'),
-    allowNull: false
+    allowNull: true
   }
 
   
