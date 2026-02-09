@@ -7,6 +7,11 @@ Document.belongsTo(Utilisateur, {
   as: 'client'
 });
 
+Document.belongsTo(Utilisateur, {
+  foreignKey: 'professionnelId',
+  as: 'professionnel'
+});
+
 Document.hasMany(DocumentItem, {
   foreignKey: 'documentId',
   as: 'items',

@@ -38,7 +38,16 @@ const Document = sequelize.define('Document', {
   clientId: {
     type: DataTypes.UUID,
     allowNull: false
+  },
+  professionnelId: {
+    type: DataTypes.UUID,
+    allowNull: false
+  },
+  document_pdf: {
+    type: LONGTEXT,
+    allowNull: false
   }
+   
 }, {
   tableName: 'documents',
   timestamps: true
