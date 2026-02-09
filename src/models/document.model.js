@@ -32,7 +32,7 @@ const Document = sequelize.define('Document', {
     validate: { min: 0 }
   },
   moyen_paiement: {
-    type: DataTypes.ENUM('ESPECES', 'MOBILE MONEY', 'VIREMENT', 'AUTRE'),
+    type: DataTypes.ENUM('ESPECES', 'MOBILE MONEY', 'VIREMENT BANCAIRE', 'AUTRE'),
     defaultValue: 'ESPECES'
   },
   clientId: {
