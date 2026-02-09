@@ -41,7 +41,7 @@ const Document = sequelize.define('Document', {
   },
   professionnelId: {
     type: DataTypes.UUID,
-    allowNull: false
+    allowNull: true
   },
   document_pdf: {
     type: DataTypes.TEXT('long'),
