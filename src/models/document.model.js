@@ -44,10 +44,11 @@ const Document = sequelize.define('Document', {
     allowNull: false
   },
   document_pdf: {
-    type: LONGTEXT,
+    type: DataTypes.TEXT('long'),
     allowNull: false
   }
-   
+
+  
 }, {
   tableName: 'documents',
   timestamps: true
