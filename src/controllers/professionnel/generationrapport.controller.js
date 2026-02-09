@@ -52,5 +52,3 @@ exports.creerDocument = async (req, res) => {
   }
 };
 
-// -------------------- LISTE DES CLIENTS (PAGINATION) --------------------
-

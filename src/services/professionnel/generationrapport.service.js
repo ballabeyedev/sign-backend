@@ -5,8 +5,9 @@ const { Op } = require('sequelize');
 const { sendEmail } = require('../../utils/mailer');
 
 // ✅ CORRECTION : nom cohérent
-const documentMailTemplateClient = require('../../templates/mail/documentMailTemplateClient');
 const documentMailTemplateProfesionnel = require('../../templates/mail/documentMailTemplateProfesionnel');
+
+const documentMailTemplateClient = require('../../templates/mail/documentMailTemplateClient');
 
 class GestionDocumentService {
 
