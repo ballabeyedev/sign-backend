@@ -5,5 +5,9 @@ const gestionDocumentController = require('../../controllers/professionnel/gener
 
 router.post('/creer-document', auth, gestionDocumentController.creerDocument);
 router.get('/mes-documents', auth, gestionDocumentController.getMesDocuments);
-
+router.get(
+  '/telecharger-document/:documentId',
+  auth,
+  gestionDocumentController.telechargerDocument
+);
 module.exports = router;

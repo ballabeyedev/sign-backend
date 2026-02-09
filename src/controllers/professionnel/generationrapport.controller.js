@@ -83,3 +83,39 @@ exports.getMesDocuments = async (req, res) => {
   }
 };
 
+exports.telechargerDocument = async (req, res) => {
+  try {
+    const utilisateurConnecte = req.user;
+    const { documentId } = req.params;
+
+    const result = await GestionDocumentService.telechargerDocument({
+      documentId,
+      utilisateurConnecte
+    });
+
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        message: result.error
+      });
+    }
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=facture-${result.data.numero_facture}.pdf`,
+      'Content-Length': result.data.pdfBuffer.length
+    });
+
+    return res.send(result.data.pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Erreur téléchargement document:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+      error: error.message
+    });
+  }
+};
+
+

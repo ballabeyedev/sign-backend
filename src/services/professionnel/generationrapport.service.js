@@ -239,6 +239,50 @@ class GestionDocumentService {
     }
   }
 
+  static async telechargerDocument({ documentId, utilisateurConnecte }) {
+  try {
+    const document = await Document.findOne({
+      where: {
+        id: documentId,
+        professionnelId: utilisateurConnecte.id
+      }
+    });
+
+    if (!document) {
+      return {
+        success: false,
+        error: 'Document introuvable ou accès non autorisé'
+      };
+    }
+
+    if (!document.document_pdf) {
+      return {
+        success: false,
+        error: 'Aucun PDF disponible pour ce document'
+      };
+    }
+
+    // Conversion Base64 → Buffer
+    const pdfBuffer = Buffer.from(document.document_pdf, 'base64');
+
+    return {
+      success: true,
+      data: {
+        pdfBuffer,
+        numero_facture: document.numero_facture
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Erreur telechargerDocument:', error);
+    return {
+      success: false,
+      error: 'Erreur lors du téléchargement du document'
+    };
+  }
+}
+
+
 }
 
 // 🔧 PDF
