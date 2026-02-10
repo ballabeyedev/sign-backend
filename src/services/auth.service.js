@@ -107,12 +107,13 @@ static async register({
         success: false,
         error: 'Identifiant ou mot de passe incorrect' 
       };
-     if (utilisateur.statut !== 'actif') {
-        return {
-          success: false,
-          message: `Compte ${utilisateur.statut}`
-        };
-      }
+    
+    if (utilisateur.statut !== 'actif') {
+      return {
+        success: false,
+        error: `Votre compte est ${utilisateur.statut}. Veuillez contacter le support ou réactiver votre compte.`
+      };
+    }
 
     const valid = await bcrypt.compare(mot_de_passe, utilisateur.mot_de_passe);
     if (!valid) {

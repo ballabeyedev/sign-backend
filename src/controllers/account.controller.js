@@ -125,3 +125,83 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+// -------------------- ACTIVATION/DESACTIVATION COMPTE --------------------
+
+exports.deactivateAccount = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const result = await AccountService.deactivateUser(userId);
+
+    if (result.error) {
+      return res.status(400).json({
+        message: result.error
+      });
+    }
+
+    return res.status(200).json({
+      message: result.message,
+      utilisateur: result.utilisateur
+    });
+
+  } catch (error) {
+    console.error("Erreur controller deactivateAccount:", error);
+    return res.status(500).json({
+      message: "Erreur serveur lors de la désactivation du compte",
+      erreur: error.message
+    });
+  }
+};
+
+exports.activateAccount = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const result = await AccountService.activateUser(userId);
+
+    if (result.error) {
+      return res.status(400).json({
+        message: result.error
+      });
+    }
+
+    return res.status(200).json({
+      message: result.message,
+      utilisateur: result.utilisateur
+    });
+
+  } catch (error) {
+    console.error("Erreur controller activateAccount:", error);
+    return res.status(500).json({
+      message: "Erreur serveur lors de l'activation du compte",
+      erreur: error.message
+    });
+  }
+};
+
+exports.toggleAccountStatus = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const result = await AccountService.toggleUserStatus(userId);
+
+    if (result.error) {
+      return res.status(400).json({
+        message: result.error
+      });
+    }
+
+    return res.status(200).json({
+      message: result.message,
+      utilisateur: result.utilisateur
+    });
+
+  } catch (error) {
+    console.error("Erreur controller toggleAccountStatus:", error);
+    return res.status(500).json({
+      message: "Erreur serveur lors du changement du statut du compte",
+      erreur: error.message
+    });
+  }
+};
+
