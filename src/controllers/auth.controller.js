@@ -10,11 +10,12 @@ exports.inscriptionUser = async (req, res) => {
     adresse,
     telephone,
     carte_identite_national_num,
-    role,
-    logo
+    role
   } = req.body;
 
-  const photoProfil = req.file || null;
+  const photoProfil = req.files['photoProfil'] ? req.files['photoProfil'][0] : null;
+  const logo = req.files['logo'] ? req.files['logo'][0] : null;
+
 
   try {
     const result = await AuthService.register({

@@ -6,7 +6,14 @@ const multer = require('multer');
 
 const upload = multer({ dest: 'uploads/' });
 
-router.post('/register', upload.single('photoProfil'), authController.inscriptionUser);
+router.post(
+  '/register',
+  upload.fields([
+    { name: 'photoProfil', maxCount: 1 },
+    { name: 'logo', maxCount: 1 }
+  ]),
+  authController.inscriptionUser
+);
 router.post('/login', authController.login);
 
 module.exports = router;
