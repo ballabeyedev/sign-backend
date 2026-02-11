@@ -56,6 +56,21 @@ static async register({
       }
     }
 
+    if (numero_cni) {
+      const numero_cniExist = await Utilisateur.findOne({
+        where: { carte_identite_national_num },
+        transaction: t
+      });
+
+      if (numero_cniExist) {
+        await t.rollback();
+        return {
+          success: false,
+          message: "Ce numéro de carte identite est déjà utilisé"
+        };
+      }
+    }
+
 
     const hashedPassword = await bcrypt.hash(
       mot_de_passe,
