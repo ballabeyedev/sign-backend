@@ -51,6 +51,10 @@ const User = sequelize.define('User', {
   statut: {
     type: DataTypes.ENUM('actif', 'inactif'),
     defaultValue: 'actif'
+  },
+  logo: {
+    type: DataTypes.TEXT('long'),
+    allowNull: true
   }
 
 }, {

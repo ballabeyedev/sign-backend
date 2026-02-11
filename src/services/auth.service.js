@@ -20,7 +20,8 @@ static async register({
   telephone,
   numero_cni,
   photoProfil,
-  role = 'Client'
+  role = 'Client',
+  logo
 }) {
   const t = await sequelize.transaction();
 
@@ -51,6 +52,12 @@ static async register({
       photoUrl = await uploadImage(photoProfil.path);
     }
 
+    let logo= null;
+
+    if (logo && logo.path) {
+      logo = await uploadImage(logo.path);
+    }
+
 
     const utilisateur = await Utilisateur.create({
       nom,
@@ -61,7 +68,8 @@ static async register({
       telephone,
       carte_identite_national_num: numero_cni,
       photoProfil: photoUrl,
-      role
+      role,
+      logo
     }, { transaction: t });
 
     await t.commit();

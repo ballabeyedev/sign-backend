@@ -10,7 +10,8 @@ exports.inscriptionUser = async (req, res) => {
     adresse,
     telephone,
     carte_identite_national_num,
-    role
+    role,
+    logo
   } = req.body;
 
   const photoProfil = req.file || null;
@@ -25,7 +26,8 @@ exports.inscriptionUser = async (req, res) => {
       telephone,
       numero_cni: carte_identite_national_num,
       photoProfil,
-      role
+      role,
+      logo
     });
 
     if (!result.success) {
