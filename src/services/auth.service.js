@@ -41,6 +41,22 @@ static async register({
       };
     }
 
+    if (telephone) {
+      const telExist = await Utilisateur.findOne({
+        where: { telephone },
+        transaction: t
+      });
+
+      if (telExist) {
+        await t.rollback();
+        return {
+          success: false,
+          message: "Ce numéro de téléphone est déjà utilisé"
+        };
+      }
+    }
+
+
     const hashedPassword = await bcrypt.hash(
       mot_de_passe,
       bcryptConfig.saltRounds
