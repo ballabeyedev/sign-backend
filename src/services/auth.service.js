@@ -20,8 +20,10 @@ static async register({
   telephone,
   numero_cni,
   photoProfil,
-  role = 'Client',
-  logo
+  role = 'Particulier',
+  logo,
+  rc,
+  ninea
 }) {
   const t = await sequelize.transaction();
 
@@ -100,7 +102,9 @@ static async register({
       carte_identite_national_num: numero_cni,
       photoProfil: photoUrl,
       role,
-      logo
+      logo,
+      rc,
+      ninea
     }, { transaction: t });
 
     await t.commit();
@@ -170,7 +174,9 @@ static async register({
       telephone: utilisateur.telephone,
       photoProfil: utilisateur.photoProfil,
       carte_identite_national_num: utilisateur.carte_identite_national_num,
-      role: utilisateur.role
+      role: utilisateur.role,
+      rc:utilisateur.rc,
+      ninea: utilisateur.ninea
     }, jwtConfig.secret, { expiresIn: jwtConfig.expiresIn });
 
     return {success: true, token, utilisateur };
