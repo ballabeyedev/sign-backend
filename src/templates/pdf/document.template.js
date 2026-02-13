@@ -1,4 +1,4 @@
-function templateDocument({
+module.exports = ({
   numeroFacture,
   nomClient,
   cniClient,
@@ -16,7 +16,7 @@ function templateDocument({
   moyen_paiement,
   items,
   dateGeneration
-}) {
+}) => {
   return `
 <!DOCTYPE html>
 <html lang="fr">
