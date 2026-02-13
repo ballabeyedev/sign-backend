@@ -1,349 +1,292 @@
-module.exports = ({
-  numeroFacture,
-  nomClient,
-  cniClient,
-  nomUtilisateur,
-  telephone,
-  email,
-  logo,
-  rc,
-  ninea,
-  delais_execution,
-  date_execution,
-  avance,
-  lieu_execution,
-  montant,
-  moyen_paiement,
-  items,
-  dateGeneration
-}) => {
+module.exports = function invoiceTemplate(data) {
+  const {
+    numeroFacture,
+    nomClient,
+    cniClient,
+    nomUtilisateur,
+    telephone,
+    email,
+    logo,
+    rc,
+    ninea,
+    delais_execution,
+    date_execution,
+    avance,
+    lieu_execution,
+    montant,          // Montant total TTC (ici = HT car pas de TVA)
+    moyen_paiement,
+    items,
+    dateGeneration
+  } = data;
+
+  const totalAPayer = montant - (avance || 0);
+
   return `
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Facture - SIGN</title>
-
+  <meta charset="UTF-8">
+  <title>Facture ${numeroFacture}</title>
   <style>
-    @page { size: A4; margin: 18mm 15mm; }
-
-    :root{
-      --black:#111;
-      --gray:#f2f2f2;
-      --line:#333;
-    }
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 13.5px;
-      color: var(--black);
-      background: #e9e9e9;
-      min-height: 100vh;
-      display:flex;
-      justify-content:center;
-      align-items:center;
+    /* (Garder le même CSS que précédemment) */
+    body {
+      font-family: 'Helvetica', Arial, sans-serif;
+      margin: 0;
       padding: 20px;
+      color: #333;
+      line-height: 1.4;
     }
-
-    /* ✅ Feuille A4 avec IMAGE de fond papier */
-    .page{
-      width: 210mm;
-      min-height: 297mm;
-      padding: 18mm 15mm;
-      background: #fff url("papier_blanc_synthetique_A4_300dpi.png") center/cover no-repeat;
-      box-shadow: 0 10px 30px rgba(0,0,0,.18);
-      border-radius: 2px;
-      position: relative;
-      overflow: hidden;
+    .invoice-box {
+      max-width: 800px;
+      margin: auto;
+      border: 1px solid #eee;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      padding: 30px;
     }
-
-    /* couche blanche légère pour lisibilité */
-    .page::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background: rgba(255,255,255,.25);
-      pointer-events:none;
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #2c3e50;
+      padding-bottom: 20px;
     }
-    .content{ position:relative; z-index:1; }
-
-    @media (max-width: 860px){
-      .page{ width:100%; min-height:auto; }
+    .company-info {
+      width: 60%;
     }
-
-    @media print{
-      body{ background:#fff; display:block; padding:0; }
-      .page{ width:auto; min-height:auto; padding:0; box-shadow:none; border-radius:0; overflow:visible; }
-      .page::after{ display:none; }
+    .company-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 5px;
     }
-
-    /* --- Style facture --- */
-    .top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 12mm;
+    .company-details {
+      font-size: 12px;
+      color: #7f8c8d;
     }
-
-    .logo-box{
-      width: 42mm;
-      height: 32mm;
-      border:1.6px solid var(--line);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(255,255,255,.85);
-      padding: 4mm;
+    .invoice-title {
+      text-align: right;
+      width: 35%;
     }
-    .logo-box img{
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      display:block;
+    .invoice-title h2 {
+      color: #2c3e50;
+      margin: 0;
     }
-
-    .title{
+    .invoice-title .invoice-number {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .client-section {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .client-box, .pro-box {
+      width: 48%;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 6px;
+    }
+    .client-box h4, .pro-box h4 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #2c3e50;
+      border-bottom: 1px solid #bdc3c7;
+      padding-bottom: 5px;
+    }
+    .info-row {
+      display: flex;
+      margin-bottom: 5px;
+    }
+    .info-label {
+      font-weight: bold;
+      width: 120px;
+    }
+    .info-value {
       flex: 1;
-      text-align:center;
-      font-size: 44px;
-      font-weight: 700;
-      letter-spacing: .5px;
-      margin-top: 2mm;
     }
-
-    .hr{
-      border:0;
-      border-top: 1.4px solid var(--line);
-      margin: 8mm 0 6mm;
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 30px 0;
     }
-
-    .company{
-      display:flex;
-      justify-content:space-between;
-      gap: 10mm;
-      margin-bottom: 6mm;
+    table.items th {
+      background: #2c3e50;
+      color: white;
+      padding: 10px;
+      font-size: 14px;
+      text-align: left;
     }
-    .company .left{ width:60%; }
-    .company .right{ width:40%; text-align:right; line-height:1.45; }
-    .company .left .name{ font-weight:700; font-size:16px; margin-bottom:2mm; }
-    .company p{ margin: 1.3mm 0; line-height:1.45; }
-
-    .meta{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      column-gap: 12mm;
-      position: relative;
-      padding: 3mm 0;
-      margin-bottom: 5mm;
+    table.items td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
     }
-    .meta:before{
-      content:"";
-      position:absolute;
-      left:50%;
-      top:0;
-      bottom:0;
-      width:1.2px;
-      background: var(--line);
-      transform: translateX(-50%);
-      opacity:.9;
+    table.items tr:last-child td {
+      border-bottom: none;
     }
-    .block-title{ font-weight:800; letter-spacing:.6px; margin:0 0 2mm; }
-    .meta .right{ text-align:right; }
-    .meta p{ margin: 1.4mm 0; }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      margin-top: 2mm;
-      background: rgba(255,255,255,.85);
+    .amount-right {
+      text-align: right;
     }
-    th, td{
-      border: 1px solid var(--line);
-      padding: 8px;
-      vertical-align: middle;
+    .totals {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
     }
-    th{ background: var(--gray); font-weight:700; text-align:center; }
-    td:nth-child(1){ text-align:left; }
-    td:nth-child(2), td:nth-child(3), td:nth-child(4){ text-align:center; }
-
-    .totals-wrap{ display:flex; justify-content:flex-end; margin-top:-1px; }
-    .totals{
-      width:55%;
-      border-left:1px solid var(--line);
-      border-right:1px solid var(--line);
-      border-bottom:1px solid var(--line);
-      background: rgba(255,255,255,.85);
+    .totals-table {
+      width: 300px;
+      border-collapse: collapse;
     }
-    .totals .row{ display:flex; border-top:1px solid var(--line); }
-    .totals .label{ flex:1; padding:8px 10px; text-align:right; font-weight:700; }
-    .totals .value{ width:35%; padding:8px 10px; text-align:right; font-weight:800; border-left:1px solid var(--line); }
-
-    .payment{
-      border:1px solid var(--line);
-      margin-top: 7mm;
-      background: rgba(255,255,255,.85);
+    .totals-table td {
+      padding: 8px 10px;
     }
-    .payment .row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom:1px solid var(--line);
+    .totals-table .label {
+      font-weight: bold;
     }
-    .payment .cell{ padding:8px 10px; border-right:1px solid var(--line); }
-    .payment .row .cell:last-child{ border-right:0; }
-    .payment .label{ font-weight:700; }
-    .payment .value{ float:right; font-weight:800; }
-    .payment .row:last-child{ border-bottom:0; }
-    .obs{ border-top:1px solid var(--line); padding:10px; min-height: 26mm; }
-
-    .bottom{
-      display:flex;
-      justify-content:space-between;
-      margin-top: 10mm;
-      align-items:flex-start;
+    .totals-table .total-montant {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
     }
-    .bottom .left, .bottom .right{ width:48%; }
-    .bottom .right{ text-align:right; }
-
-    .sign{ margin-top: 18mm; text-align:right; }
-    .sign .line{ display:inline-block; width:70mm; border-top:1.4px solid var(--line); margin-top:10mm; }
-    .sign .txt{ margin-top:3mm; font-size:13px; color:#111; }
-
-    .footer{ text-align:center; margin-top:14mm; font-size:12px; color:#333; }
+    .payment-section {
+      margin-top: 30px;
+      border-top: 2px dashed #2c3e50;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .payment-box {
+      width: 45%;
+    }
+    .payment-box h4 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .payment-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    .payment-label {
+      font-weight: bold;
+      width: 120px;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #7f8c8d;
+      text-align: right;
+    }
   </style>
 </head>
-
 <body>
-  <div class="page">
-    <div class="content">
-
-      <div class="top">
-        <div class="logo-box">
-          <img src="${logo || 'auchan.png'}" alt="Logo entreprise" onerror="this.src='auchan.png'">
-        </div>
-        <div class="title">Facture</div>
-        <div style="width:42mm;"></div>
-      </div>
-
-      <hr class="hr"/>
-
-      <div class="company">
-        <div class="left">
-          <div class="name">${nomUtilisateur}</div>
-          <p>Tél : ${telephone || '-'}</p>
-          <p>Email : ${email || '-'}</p>
-        </div>
-        <div class="right">
-          <p><strong>RC :</strong> ${rc || '-'}</p>
-          <p><strong>NINEA :</strong> ${ninea || '-'}</p>
+  <div class="invoice-box">
+    <!-- En‑tête -->
+    <div class="header">
+      <div class="company-info">
+        <div class="company-name">${nomUtilisateur || 'AUCHAN'}</div>
+        <div class="company-details">
+          ${telephone ? 'Tél : ' + telephone : ''}<br>
+          ${email ? 'Email : ' + email : ''}<br>
+          RC : ${rc || 'N/A'}<br>
+          NINEA : ${ninea || 'N/A'}
         </div>
       </div>
+      <div class="invoice-title">
+        <h2>FACTURE</h2>
+        <div class="invoice-number">N° ${numeroFacture}</div>
+        <div>Date : ${dateGeneration}</div>
+      </div>
+    </div>
 
-      <hr class="hr"/>
-
-      <div class="meta">
-        <div class="left">
-          <div class="block-title">CLIENT</div>
-          <p>${nomClient}</p>
-          <p>Numéro CNI : ${cniClient}</p>
+    <!-- Informations client / professionnel -->
+    <div class="client-section">
+      <div class="client-box">
+        <h4>CLIENT</h4>
+        <div class="info-row">
+          <span class="info-label">Nom :</span>
+          <span class="info-value">${nomClient}</span>
         </div>
-        <div class="right">
-          <p><strong>FACTURE N° :</strong> ${numeroFacture}</p>
-          <p><strong>Date :</strong> ${dateGeneration}</p>
-          <p><strong>Délai d'exécution :</strong> ${delais_execution}</p>
-          <p><strong>Date d'exécution :</strong> ${date_execution}</p>
+        <div class="info-row">
+          <span class="info-label">CNI :</span>
+          <span class="info-value">${cniClient}</span>
         </div>
       </div>
+      <div class="pro-box">
+        <h4>DETAILS</h4>
+        <div class="info-row">
+          <span class="info-label">Délai exécution :</span>
+          <span class="info-value">${delais_execution}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Date exécution :</span>
+          <span class="info-value">${date_execution}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Lieu :</span>
+          <span class="info-value">${lieu_execution}</span>
+        </div>
+      </div>
+    </div>
 
-      <table id="itemsTable">
-        <thead>
+    <!-- Tableau des produits -->
+    <table class="items">
+      <thead>
+        <tr>
+          <th>Désignation</th>
+          <th>Qté</th>
+          <th>Prix unitaire (FCFA)</th>
+          <th>Total (FCFA)</th>   <!-- Modifié : suppression de "HT" -->
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(item => `
           <tr>
-            <th style="width:46%;">Désignation</th>
-            <th style="width:12%;">Qté</th>
-            <th style="width:21%;">Prix Unitaire</th>
-            <th style="width:21%;">Total HT</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${items.map(item => `
-          <tr class="item">
-            <td>${item.designation || item.nom || 'Produit'}</td>
+            <td>${item.designation}</td>
             <td>${item.quantite}</td>
-            <td>${item.prix_unitaire} FCFA</td>
-            <td><strong>${item.total} FCFA</strong></td>
+            <td class="amount-right">${Number(item.prix_unitaire).toLocaleString('fr-FR')}</td>
+            <td class="amount-right">${(item.quantite * item.prix_unitaire).toLocaleString('fr-FR')}</td>
           </tr>
-          `).join('')}
-        </tbody>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <!-- Totaux : une seule ligne "Total" sans TVA -->
+    <div class="totals">
+      <table class="totals-table">
+        <tr>
+          <td class="label total-montant">Total :</td>
+          <td class="amount-right total-montant">${montant.toLocaleString('fr-FR')} FCFA</td>
+        </tr>
       </table>
+    </div>
 
-      <div class="totals-wrap">
-        <div class="totals">
-          <div class="row">
-            <div class="label">Total Hors Taxe (HT) :</div>
-            <div class="value"><span id="totalHT">${montant}</span> FCFA</div>
-          </div>
-          <div class="row">
-            <div class="label">TVA (18%) :</div>
-            <div class="value"><span id="tvaAmount">${(parseFloat(montant) * 0.18).toLocaleString('fr-FR')}</span> FCFA</div>
-          </div>
-          <div class="row">
-            <div class="label">Total TTC :</div>
-            <div class="value"><span id="totalTTC">${(parseFloat(montant) * 1.18).toLocaleString('fr-FR')}</span> FCFA</div>
-          </div>
+    <!-- Mode de paiement & avance -->
+    <div class="payment-section">
+      <div class="payment-box">
+        <h4>Mode de paiement</h4>
+        <div class="payment-row">
+          <span class="payment-label">Mode :</span>
+          <span>${moyen_paiement}</span>
+        </div>
+        <div class="payment-row">
+          <span class="payment-label">Avance :</span>
+          <span>${avance ? avance.toLocaleString('fr-FR') + ' FCFA' : '0 FCFA'}</span>
+        </div>
+        <div class="payment-row">
+          <span class="payment-label">Reste à payer :</span>
+          <span><strong>${totalAPayer.toLocaleString('fr-FR')} FCFA</strong></span>
         </div>
       </div>
-
-      <div class="payment">
-        <div class="row">
-          <div class="cell">
-            <span class="label">Mode de paiement :</span>
-            <span class="value">${moyen_paiement}</span>
-          </div>
-          <div class="cell">
-            <span class="label">Avance :</span>
-            <span class="value">${avance}</span>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="cell">
-            <span class="label">Lieu d'exécution :</span>
-            <span class="value">${lieu_execution}</span>
-          </div>
-          <div class="cell">
-            <span class="label">Total à payer :</span>
-            <span class="value">${(parseFloat(montant) * 1.18 - parseFloat(avance || 0)).toLocaleString('fr-FR')} FCFA</span>
-          </div>
-        </div>
-
-        <div class="obs">
-          <strong>Observations :</strong>
-        </div>
+      <div class="payment-box">
+        <h4>Observations</h4>
+        <p style="margin:0; font-style:italic;">-</p>
       </div>
+    </div>
 
-      <div class="bottom">
-        <div class="left">
-          <p><strong>Lieu :</strong> ${lieu_execution}</p>
-        </div>
-        <div class="right">
-          <p><strong>Date :</strong> ${dateGeneration}</p>
-
-          <div class="sign">
-            <div class="line"></div>
-            <div class="txt">Cachet et signature</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer">
-        Facture générée par SIGN
-      </div>
-
+    <!-- Pied de page -->
+    <div class="footer">
+      Lieu : Dakar, le ${dateGeneration}
     </div>
   </div>
 </body>
 </html>
   `;
-}
+};
