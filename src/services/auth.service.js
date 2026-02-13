@@ -83,10 +83,10 @@ static async register({
       photoUrl = await uploadImage(photoProfil.path);
     }
 
-    let logo= null;
+    let logoUrl= null;
 
     if (logo && logo.path) {
-      logo = await uploadImage(logo.path);
+      logoUrl = await uploadImage(logo.path);
     }
 
 
@@ -100,7 +100,7 @@ static async register({
       carte_identite_national_num,
       photoProfil: photoUrl,
       role,
-      logo,
+      logo:logoUrl,
       rc,
       ninea
     }, { transaction: t });
