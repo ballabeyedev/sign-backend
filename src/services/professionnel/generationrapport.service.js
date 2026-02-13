@@ -109,7 +109,13 @@ class GestionDocumentService {
       const html = templateDocument({
         numeroFacture: numero_facture,
         nomClient: `${client.nom} ${client.prenom}`,
+        cniClient: `${client.carte_identite_national_num} ${client.carte_identite_national_num}`,
         nomUtilisateur: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
+        telephone: `${utilisateurConnecte.telephone}`,
+        email: `${utilisateurConnecte.email}`,
+        logo: `${utilisateurConnecte.logo}`,
+        rc: `${utilisateurConnecte.rc} ${utilisateurConnecte.rc}`,
+        ninea: `${utilisateurConnecte.ninea} ${utilisateurConnecte.ninea}`,
         delais_execution: delais_execution || '-',
         date_execution: date_execution
           ? new Date(date_execution).toLocaleDateString('fr-FR')
@@ -143,16 +149,6 @@ class GestionDocumentService {
         { where: { id: document.id } }
       );
 
-      // 8️⃣ EMAILS (NON BLOQUANTS 🔥)
-      this.envoyerEmails({
-        client,
-        utilisateurConnecte,
-        numero_facture,
-        pdfBuffer
-      }).catch(err => {
-        console.error('❌ Erreur envoi email:', err.message);
-      });
-
       return {
         success: true,
         message: 'Document créé avec succès',
@@ -167,42 +163,6 @@ class GestionDocumentService {
       console.error('❌ Erreur creerDocument:', error);
       return { success: false, message: error.message };
     }
-  }
-
-  // 📧 ENVOI EMAIL (ASYNCHRONE)
-  static async envoyerEmails({
-    client,
-    utilisateurConnecte,
-    numero_facture,
-    pdfBuffer
-  }) {
-    const attachment = {
-      filename: `facture-${numero_facture}.pdf`,
-      content: pdfBuffer,
-      contentType: 'application/pdf'
-    };
-
-    await sendEmail({
-      to: client.email,
-      subject: `Votre facture – ${numero_facture}`,
-      html: documentMailTemplateClient({
-        nomClient: `${client.nom} ${client.prenom}`,
-        numero_facture,
-        type: 'Facture'
-      }),
-      attachments: [attachment]
-    });
-
-    await sendEmail({
-      to: utilisateurConnecte.email,
-      subject: `Copie de votre facture – ${numero_facture}`,
-      html: documentMailTemplateProfesionnel({
-        nomProfesionnel: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
-        numero_facture,
-        type: 'Facture'
-      }),
-      attachments: [attachment]
-    });
   }
 
   static async getMesDocuments({ utilisateurConnecte }) {
