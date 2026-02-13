@@ -3,8 +3,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { jwtConfig, bcryptConfig } = require('../config/security');
 const sequelize = require('../config/db');
-const { sendEmail } = require('../utils/mailer');
-const welcomeTemplate = require('../templates/mail/welcome.template');
 const { uploadImage } = require('../middlewares/uploadService'); // ton upload vers Cloudinary
 
 
@@ -108,22 +106,6 @@ static async register({
     }, { transaction: t });
 
     await t.commit();
-
-    // Email de bienvenue (non bloquant)
-    try {
-      const html = welcomeTemplate({
-        nom: utilisateur.nom,
-        prenom: utilisateur.prenom
-      });
-
-      await sendEmail({
-        to: utilisateur.email,
-        subject: "Bienvenue sur Sign !",
-        html
-      });
-    } catch (mailError) {
-      console.error("Erreur email:", mailError);
-    }
 
     return {
       success: true,
