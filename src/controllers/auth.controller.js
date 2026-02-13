@@ -27,7 +27,7 @@ exports.inscriptionUser = async (req, res) => {
       mot_de_passe,
       adresse,
       telephone,
-      numero_cni: carte_identite_national_num,
+      carte_identite_national_num,
       photoProfil,
       role,
       logo,

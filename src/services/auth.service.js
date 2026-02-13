@@ -18,7 +18,7 @@ static async register({
   mot_de_passe,
   adresse,
   telephone,
-  numero_cni,
+  carte_identite_national_num,
   photoProfil,
   role = 'Particulier',
   logo,
@@ -58,9 +58,9 @@ static async register({
       }
     }
 
-    if (numero_cni) {
+    if (carte_identite_national_num) {
       const numero_cniExist = await Utilisateur.findOne({
-        where: { numero_cni },
+        where: { carte_identite_national_num },
         transaction: t
       });
 
@@ -99,7 +99,7 @@ static async register({
       mot_de_passe: hashedPassword,
       adresse,
       telephone,
-      carte_identite_national_num: numero_cni,
+      carte_identite_national_num,
       photoProfil: photoUrl,
       role,
       logo,
