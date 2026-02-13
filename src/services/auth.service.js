@@ -60,7 +60,7 @@ static async register({
 
     if (numero_cni) {
       const numero_cniExist = await Utilisateur.findOne({
-        where: { carte_identite_national_num },
+        where: { numero_cni },
         transaction: t
       });
 
