@@ -150,33 +150,41 @@ class GestionDocumentService {
       );
 
       // 8️⃣ ENVOI EMAIL AU CLIENT
-      try {
-        if (client.email) {
+      // 8️⃣ ENVOI EMAIL AU CLIENT
+try {
+  // 🔍 LOG : vérifier l'objet client et son email
+  console.log('🔍 client object:', client);
+  console.log('🔍 client.email:', client.email);
 
-          const mailHtml = documentMailTemplateClient({
-            nomClient: `${client.nom} ${client.prenom}`,
-            numeroFacture: numero_facture,
-            nomProfessionnel: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`
-          });
+  if (client.email) {
 
-          await sendEmail({
-            to: client.email,
-            subject: `Votre facture ${numero_facture}`,
-            html: mailHtml,
-            attachments: [
-              {
-                filename: `facture_${numero_facture}.pdf`,
-                content: pdfBuffer,
-                contentType: 'application/pdf'
-              }
-            ]
-          });
+    const mailHtml = documentMailTemplateClient({
+      nomClient: `${client.nom} ${client.prenom}`,
+      numeroFacture: numero_facture,
+      nomProfessionnel: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`
+    });
 
-          console.log('📧 Facture envoyée au client');
+    await sendEmail({
+      to: client.email,
+      subject: `Votre facture ${numero_facture}`,
+      html: mailHtml,
+      attachments: [
+        {
+          filename: `facture_${numero_facture}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf'
         }
-      } catch (mailError) {
-        console.error('⚠️ Erreur envoi email:', mailError);
-      }
+      ]
+    });
+
+    console.log('📧 Facture envoyée au client');
+  } else {
+    console.warn('⚠️ client.email est vide ou undefined');
+  }
+} catch (mailError) {
+  console.error('⚠️ Erreur envoi email:', mailError);
+}
+
 
 
       return {
