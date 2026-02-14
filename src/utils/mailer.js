@@ -1,41 +1,53 @@
 // mailer.js
 const SibApiV3Sdk = require('sib-api-v3-sdk');
-const fs = require('fs'); // pour lire les fichiers PDF si besoin
+const fs = require('fs');
 
-// Configurer le client Brevo
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY; // ta clé API V3
+apiKey.apiKey = process.env.BREVO_API_KEY;
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-/**
- * Envoi d'un email via l'API Brevo
- * @param {string} to - Email du destinataire
- * @param {string} subject - Sujet de l'email
- * @param {string} html - Contenu HTML
- * @param {Array} attachments - Pièces jointes [{ filename, content }]
- */
 exports.sendEmail = async ({ to, subject, html, attachments = [] }) => {
   try {
-    // Transformer les attachments en base64 si ce n'est pas déjà le cas
+    // 🔍 LOG 1 : Vérifier la variable MAIL_FROM
+    console.log('🔍 MAIL_FROM =', process.env.MAIL_FROM);
+
+    // Transformer les pièces jointes
     const formattedAttachments = attachments.map(att => ({
       name: att.filename,
-      content: att.content.toString('base64') // Brevo attend base64
+      content: att.content.toString('base64')
     }));
 
+    // Construire l'objet email
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail({
       to: [{ email: to }],
-      sender: { name: "Support", email: process.env.MAIL_FROM },
+      sender: { 
+        name: "Support", 
+        email: process.env.MAIL_FROM || "beyeballa04@gmail.com" 
+      },
+
       subject: subject,
       htmlContent: html,
       attachment: formattedAttachments
     });
 
+    // 🔍 LOG 2 : Afficher l'objet complet (attention : peut contenir des données volumineuses)
+    console.log('🔍 Objet sendSmtpEmail (sans les pièces jointes) :', {
+      ...sendSmtpEmail,
+      attachment: sendSmtpEmail.attachment ? `[${sendSmtpEmail.attachment.length} pièce(s) jointe(s)]` : 'aucune'
+    });
+
     const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('✅ Email envoyé avec succès via Brevo API', data);
   } catch (error) {
-    console.error('❌ Erreur envoi email via Brevo API:', error);
+    console.error('❌ Erreur envoi email via Brevo API:');
+    // 🔍 LOG 3 : Afficher plus de détails sur l'erreur
+    if (error.response && error.response.body) {
+      console.error('Détails de l’erreur API :', error.response.body);
+    } else {
+      console.error(error);
+    }
     throw error;
   }
 };
