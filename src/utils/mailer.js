@@ -13,6 +13,11 @@ exports.sendEmail = async ({ to, subject, html, attachments = [] }) => {
     // 🔍 LOG 1 : Vérifier la variable MAIL_FROM
     console.log('🔍 MAIL_FROM =', process.env.MAIL_FROM);
 
+    // Vérifier si la clé API est présente
+    if (!process.env.BREVO_API_KEY) {
+      console.error('❌ BREVO_API_KEY non définie !');
+    }
+
     // Transformer les pièces jointes
     const formattedAttachments = attachments.map(att => ({
       name: att.filename,
@@ -26,28 +31,40 @@ exports.sendEmail = async ({ to, subject, html, attachments = [] }) => {
         name: "Support", 
         email: process.env.MAIL_FROM || "beyeballa04@gmail.com" 
       },
-
       subject: subject,
       htmlContent: html,
       attachment: formattedAttachments
     });
 
-    // 🔍 LOG 2 : Afficher l'objet complet (attention : peut contenir des données volumineuses)
-    console.log('🔍 Objet sendSmtpEmail (sans les pièces jointes) :', {
-      ...sendSmtpEmail,
-      attachment: sendSmtpEmail.attachment ? `[${sendSmtpEmail.attachment.length} pièce(s) jointe(s)]` : 'aucune'
-    });
+    // 🔍 LOG 2 : Afficher l'objet complet
+    console.log('🔍 Objet sendSmtpEmail :');
+    console.log(JSON.stringify(sendSmtpEmail, null, 2));
 
+    // 🔍 LOG 3 : Vérifier le type et la valeur du sender
+    console.log('🔍 Vérification sender :', sendSmtpEmail.sender);
+    console.log('🔍 Type de sender:', typeof sendSmtpEmail.sender);
+    console.log('🔍 sender.email est défini ?', !!sendSmtpEmail.sender.email);
+    console.log('🔍 sender.name est défini ?', !!sendSmtpEmail.sender.name);
+
+    // 🔍 LOG 4 : Vérifier le destinataire
+    console.log('🔍 Destinataire :', sendSmtpEmail.to);
+
+    // Envoyer l'email
     const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('✅ Email envoyé avec succès via Brevo API', data);
+    
   } catch (error) {
     console.error('❌ Erreur envoi email via Brevo API:');
-    // 🔍 LOG 3 : Afficher plus de détails sur l'erreur
-    if (error.response && error.response.body) {
-      console.error('Détails de l’erreur API :', error.response.body);
-    } else {
-      console.error(error);
+
+    // 🔍 LOG 5 : Tout le contenu de l'erreur
+    console.error('🔍 error object :', error);
+
+    if (error.response) {
+      console.error('🔍 error.response.status :', error.response.status);
+      console.error('🔍 error.response.body :', error.response.body);
+      console.error('🔍 error.response.text :', error.response.text);
     }
+
     throw error;
   }
 };
