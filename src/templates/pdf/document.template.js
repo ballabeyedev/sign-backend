@@ -11,282 +11,272 @@ module.exports = function invoiceTemplate(data) {
     ninea,
     delais_execution,
     date_execution,
-    avance,
+    avance = 0,
     lieu_execution,
-    montant,          // Montant total TTC (ici = HT car pas de TVA)
+    montant,
     moyen_paiement,
     items,
     dateGeneration
   } = data;
 
-  const totalAPayer = montant - (avance || 0);
+  const totalHT = montant;
+  const TVA_RATE = 0; // changer si TVA utilisée
+  const tvaAmount = totalHT * TVA_RATE;
+  const totalTTC = totalHT + tvaAmount;
+  const totalAPayer = totalTTC - avance;
+
+  const format = n => Number(n || 0).toLocaleString('fr-FR');
 
   return `
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Facture ${numeroFacture}</title>
-  <style>
-    /* (Garder le même CSS que précédemment) */
-    body {
-      font-family: 'Helvetica', Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-      line-height: 1.4;
-    }
-    .invoice-box {
-      max-width: 800px;
-      margin: auto;
-      border: 1px solid #eee;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-      padding: 30px;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
-      border-bottom: 2px solid #2c3e50;
-      padding-bottom: 20px;
-    }
-    .company-info {
-      width: 60%;
-    }
-    .company-name {
-      font-size: 24px;
-      font-weight: bold;
-      color: #2c3e50;
-      margin-bottom: 5px;
-    }
-    .company-details {
-      font-size: 12px;
-      color: #7f8c8d;
-    }
-    .invoice-title {
-      text-align: right;
-      width: 35%;
-    }
-    .invoice-title h2 {
-      color: #2c3e50;
-      margin: 0;
-    }
-    .invoice-title .invoice-number {
-      font-size: 16px;
-      font-weight: bold;
-    }
-    .client-section {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
-    }
-    .client-box, .pro-box {
-      width: 48%;
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 6px;
-    }
-    .client-box h4, .pro-box h4 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      color: #2c3e50;
-      border-bottom: 1px solid #bdc3c7;
-      padding-bottom: 5px;
-    }
-    .info-row {
-      display: flex;
-      margin-bottom: 5px;
-    }
-    .info-label {
-      font-weight: bold;
-      width: 120px;
-    }
-    .info-value {
-      flex: 1;
-    }
-    table.items {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 30px 0;
-    }
-    table.items th {
-      background: #2c3e50;
-      color: white;
-      padding: 10px;
-      font-size: 14px;
-      text-align: left;
-    }
-    table.items td {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
-    table.items tr:last-child td {
-      border-bottom: none;
-    }
-    .amount-right {
-      text-align: right;
-    }
-    .totals {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 20px;
-    }
-    .totals-table {
-      width: 300px;
-      border-collapse: collapse;
-    }
-    .totals-table td {
-      padding: 8px 10px;
-    }
-    .totals-table .label {
-      font-weight: bold;
-    }
-    .totals-table .total-montant {
-      font-size: 18px;
-      font-weight: bold;
-      color: #2c3e50;
-    }
-    .payment-section {
-      margin-top: 30px;
-      border-top: 2px dashed #2c3e50;
-      padding-top: 20px;
-      display: flex;
-      justify-content: space-between;
-    }
-    .payment-box {
-      width: 45%;
-    }
-    .payment-box h4 {
-      margin-top: 0;
-      color: #2c3e50;
-    }
-    .payment-row {
-      display: flex;
-      margin-bottom: 8px;
-    }
-    .payment-label {
-      font-weight: bold;
-      width: 120px;
-    }
-    .footer {
-      margin-top: 40px;
-      font-size: 12px;
-      color: #7f8c8d;
-      text-align: right;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Facture ${numeroFacture}</title>
+
+<style>
+@page { size:A4; margin:18mm 15mm; }
+
+body{
+  font-family: Arial, Helvetica, sans-serif;
+  font-size:13px;
+  color:#111;
+  background:#fff;
+}
+
+.page{
+  width:210mm;
+  min-height:297mm;
+  margin:auto;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+
+.logo-box{
+  width:42mm;
+  height:32mm;
+  border:1.5px solid #333;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.logo-box img{
+  max-width:100%;
+  max-height:100%;
+}
+
+.title{
+  flex:1;
+  text-align:center;
+  font-size:42px;
+  font-weight:700;
+}
+
+.hr{
+  border:0;
+  border-top:1px solid #333;
+  margin:10mm 0 6mm;
+}
+
+.company{
+  display:flex;
+  justify-content:space-between;
+}
+
+.company .name{
+  font-weight:bold;
+  font-size:16px;
+}
+
+.meta{
+  display:flex;
+  justify-content:space-between;
+  margin:8mm 0;
+}
+
+.block-title{
+  font-weight:bold;
+  margin-bottom:4px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th, td{
+  border:1px solid #333;
+  padding:8px;
+}
+
+th{
+  background:#f2f2f2;
+}
+
+.totals{
+  width:50%;
+  margin-left:auto;
+  margin-top:6mm;
+}
+
+.totals div{
+  display:flex;
+  justify-content:space-between;
+  border:1px solid #333;
+  border-top:0;
+  padding:6px 10px;
+}
+
+.totals div:first-child{
+  border-top:1px solid #333;
+}
+
+.payment{
+  border:1px solid #333;
+  margin-top:8mm;
+}
+
+.payment-row{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #333;
+  padding:8px 10px;
+}
+
+.payment-row:last-child{
+  border-bottom:0;
+}
+
+.bottom{
+  display:flex;
+  justify-content:space-between;
+  margin-top:12mm;
+}
+
+.sign{
+  margin-top:18mm;
+  text-align:right;
+}
+
+.sign-line{
+  width:70mm;
+  border-top:1px solid #333;
+  margin-top:10mm;
+}
+
+.footer{
+  text-align:center;
+  margin-top:14mm;
+  font-size:12px;
+}
+</style>
 </head>
+
 <body>
-  <div class="invoice-box">
-    <!-- En‑tête -->
-    <div class="header">
-      <div class="company-info">
-        <div class="company-name">${nomUtilisateur || 'AUCHAN'}</div>
-        <div class="company-details">
-          ${telephone ? 'Tél : ' + telephone : ''}<br>
-          ${email ? 'Email : ' + email : ''}<br>
-          RC : ${rc || 'N/A'}<br>
-          NINEA : ${ninea || 'N/A'}
-        </div>
-      </div>
-      <div class="invoice-title">
-        <h2>FACTURE</h2>
-        <div class="invoice-number">N° ${numeroFacture}</div>
-        <div>Date : ${dateGeneration}</div>
-      </div>
+<div class="page">
+
+  <div class="top">
+    <div class="logo-box">
+      ${logo ? `<img src="${logo}" />` : ''}
     </div>
+    <div class="title">FACTURE</div>
+    <div style="width:42mm;"></div>
+  </div>
 
-    <!-- Informations client / professionnel -->
-    <div class="client-section">
-      <div class="client-box">
-        <h4>CLIENT</h4>
-        <div class="info-row">
-          <span class="info-label">Nom :</span>
-          <span class="info-value">${nomClient}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">CNI :</span>
-          <span class="info-value">${cniClient}</span>
-        </div>
-      </div>
-      <div class="pro-box">
-        <h4>DETAILS</h4>
-        <div class="info-row">
-          <span class="info-label">Délai exécution :</span>
-          <span class="info-value">${delais_execution}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Date exécution :</span>
-          <span class="info-value">${date_execution}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Lieu :</span>
-          <span class="info-value">${lieu_execution}</span>
-        </div>
-      </div>
+  <hr class="hr">
+
+  <div class="company">
+    <div>
+      <div class="name">${nomUtilisateur}</div>
+      <div>${telephone || ''}</div>
+      <div>${email || ''}</div>
     </div>
-
-    <!-- Tableau des produits -->
-    <table class="items">
-      <thead>
-        <tr>
-          <th>Désignation</th>
-          <th>Qté</th>
-          <th>Prix unitaire (FCFA)</th>
-          <th>Total (FCFA)</th>   <!-- Modifié : suppression de "HT" -->
-        </tr>
-      </thead>
-      <tbody>
-        ${items.map(item => `
-          <tr>
-            <td>${item.designation}</td>
-            <td>${item.quantite}</td>
-            <td class="amount-right">${Number(item.prix_unitaire).toLocaleString('fr-FR')}</td>
-            <td class="amount-right">${(item.quantite * item.prix_unitaire).toLocaleString('fr-FR')}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-
-    <!-- Totaux : une seule ligne "Total" sans TVA -->
-    <div class="totals">
-      <table class="totals-table">
-        <tr>
-          <td class="label total-montant">Total :</td>
-          <td class="amount-right total-montant">${montant.toLocaleString('fr-FR')} FCFA</td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- Mode de paiement & avance -->
-    <div class="payment-section">
-      <div class="payment-box">
-        <h4>Mode de paiement</h4>
-        <div class="payment-row">
-          <span class="payment-label">Mode :</span>
-          <span>${moyen_paiement}</span>
-        </div>
-        <div class="payment-row">
-          <span class="payment-label">Avance :</span>
-          <span>${avance ? avance.toLocaleString('fr-FR') + ' FCFA' : '0 FCFA'}</span>
-        </div>
-        <div class="payment-row">
-          <span class="payment-label">Reste à payer :</span>
-          <span><strong>${totalAPayer.toLocaleString('fr-FR')} FCFA</strong></span>
-        </div>
-      </div>
-      <div class="payment-box">
-        <h4>Observations</h4>
-        <p style="margin:0; font-style:italic;">-</p>
-      </div>
-    </div>
-
-    <!-- Pied de page -->
-    <div class="footer">
-      Lieu : Dakar, le ${dateGeneration}
+    <div style="text-align:right">
+      <div><strong>RC :</strong> ${rc || '-'}</div>
+      <div><strong>NINEA :</strong> ${ninea || '-'}</div>
     </div>
   </div>
+
+  <hr class="hr">
+
+  <div class="meta">
+    <div>
+      <div class="block-title">CLIENT</div>
+      <div>${nomClient}</div>
+      <div>CNI : ${cniClient}</div>
+    </div>
+
+    <div style="text-align:right">
+      <div><strong>Facture N° :</strong> ${numeroFacture}</div>
+      <div><strong>Date :</strong> ${dateGeneration}</div>
+      <div><strong>Délai :</strong> ${delais_execution}</div>
+      <div><strong>Date exécution :</strong> ${date_execution}</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Désignation</th>
+        <th>Qté</th>
+        <th>Prix Unitaire</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${items.map(i => `
+        <tr>
+          <td>${i.designation}</td>
+          <td align="center">${i.quantite}</td>
+          <td align="right">${format(i.prix_unitaire)} FCFA</td>
+          <td align="right">${format(i.quantite * i.prix_unitaire)} FCFA</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div><span>Total HT</span><span>${format(totalHT)} FCFA</span></div>
+    <div><span>TVA</span><span>${format(tvaAmount)} FCFA</span></div>
+    <div><strong>Total TTC</strong><strong>${format(totalTTC)} FCFA</strong></div>
+  </div>
+
+  <div class="payment">
+    <div class="payment-row">
+      <span>Mode de paiement</span>
+      <strong>${moyen_paiement}</strong>
+    </div>
+    <div class="payment-row">
+      <span>Avance</span>
+      <strong>${format(avance)} FCFA</strong>
+    </div>
+    <div class="payment-row">
+      <span>Reste à payer</span>
+      <strong>${format(totalAPayer)} FCFA</strong>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div>
+      <strong>Lieu :</strong> ${lieu_execution}
+    </div>
+    <div class="sign">
+      <div class="sign-line"></div>
+      Cachet & Signature
+    </div>
+  </div>
+
+  <div class="footer">
+    Facture générée le ${dateGeneration}
+  </div>
+
+</div>
 </body>
 </html>
-  `;
+`;
 };

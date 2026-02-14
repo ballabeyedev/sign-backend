@@ -37,9 +37,10 @@ exports.creerDocument = async (req, res) => {
       success: true,
       message: 'Document créé avec succès',
       data: {
-        documentId: result.id,
-        numero_facture: result.numero_facture
+        documentId: result.data.documentId,
+        numero_facture: result.data.numero_facture
       }
+
     });
 
 
