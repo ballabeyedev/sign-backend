@@ -150,33 +150,33 @@ class GestionDocumentService {
       );
 
       // 8️⃣ ENVOI EMAIL AU CLIENT
-try {
-  if (client.email) {
+      try {
+        if (client.email) {
 
-    const mailHtml = documentMailTemplateClient({
-      nomClient: `${client.nom} ${client.prenom}`,
-      numeroFacture: numero_facture,
-      nomProfessionnel: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`
-    });
+          const mailHtml = documentMailTemplateClient({
+            nomClient: `${client.nom} ${client.prenom}`,
+            numeroFacture: numero_facture,
+            nomProfessionnel: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`
+          });
 
-    await sendEmail({
-      to: client.email,
-      subject: `Votre facture ${numero_facture}`,
-      html: mailHtml,
-      attachments: [
-        {
-          filename: `facture_${numero_facture}.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf'
+          await sendEmail({
+            to: client.email,
+            subject: `Votre facture ${numero_facture}`,
+            html: mailHtml,
+            attachments: [
+              {
+                filename: `facture_${numero_facture}.pdf`,
+                content: pdfBuffer,
+                contentType: 'application/pdf'
+              }
+            ]
+          });
+
+          console.log('📧 Facture envoyée au client');
         }
-      ]
-    });
-
-    console.log('📧 Facture envoyée au client');
-  }
-} catch (mailError) {
-  console.error('⚠️ Erreur envoi email:', mailError);
-}
+      } catch (mailError) {
+        console.error('⚠️ Erreur envoi email:', mailError);
+      }
 
 
       return {
