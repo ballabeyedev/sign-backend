@@ -17,6 +17,8 @@ exports.inscriptionUser = async (req, res) => {
 
   const photoProfil = req.files['photoProfil'] ? req.files['photoProfil'][0] : null;
   const logo = req.files['logo'] ? req.files['logo'][0] : null;
+  const signature = req.files['signature'] ? req.files['signature'][0] : null;
+
 
 
   try {
@@ -32,7 +34,8 @@ exports.inscriptionUser = async (req, res) => {
       role,
       logo,
       rc,
-      ninea
+      ninea,
+      signature
     });
 
     if (!result.success) {

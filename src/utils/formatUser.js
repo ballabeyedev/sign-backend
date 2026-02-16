@@ -10,7 +10,8 @@ const formatUser = (utilisateur) => ({
   role: utilisateur.role,
   logo: utilisateur.logo,
   rc: utilisateur.rc,
-  ninea: utilisateur.ninea
+  ninea: utilisateur.ninea,
+  signature: utilisateur.signature
 });
 
 module.exports = formatUser;

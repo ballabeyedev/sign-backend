@@ -21,7 +21,8 @@ static async register({
   role = 'Particulier',
   logo,
   rc,
-  ninea
+  ninea,
+  signature
 }) {
   const t = await sequelize.transaction();
 
@@ -89,6 +90,11 @@ static async register({
       logoUrl = await uploadImage(logo.path);
     }
 
+    let signatureUrl= null;
+
+    if (signature && signature.path) {
+      signatureUrl = await uploadImage(signature.path);
+    }
 
     const utilisateur = await Utilisateur.create({
       nom,
@@ -102,7 +108,8 @@ static async register({
       role,
       logo:logoUrl,
       rc,
-      ninea
+      ninea,
+      signature: signatureUrl
     }, { transaction: t });
 
     await t.commit();

@@ -63,7 +63,11 @@ const User = sequelize.define('User', {
   ninea: {
     type: DataTypes.STRING,
     allowNull: true
-  }
+  },
+  signature: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 
 }, {
   tableName: 'utilisateur',

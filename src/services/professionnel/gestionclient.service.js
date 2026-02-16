@@ -211,7 +211,8 @@ static async listerClients({ page = 1, limit = 10 }) {
 
     const { count, rows } = await Utilisateur.findAndCountAll({
       where: {
-        role: 'Client'
+        role: 'Client',
+        statut: 'actif'
       },
       attributes: { exclude: ['mot_de_passe'] },
       limit: pageSize,

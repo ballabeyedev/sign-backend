@@ -10,7 +10,8 @@ router.post(
   '/register',
   upload.fields([
     { name: 'photoProfil', maxCount: 1 },
-    { name: 'logo', maxCount: 1 }
+    { name: 'logo', maxCount: 1 },
+    { name: 'signature', maxCount: 1 }
   ]),
   authController.inscriptionUser
 );
