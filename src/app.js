@@ -20,6 +20,7 @@ const authRoutes = require('./routes/auth.route');
 const accountRoutes = require('./routes/account.route');
 const generationrapportRoutes = require('./routes/professionnel/generationrapport.route');
 const gestionclientRoutes = require('./routes/professionnel/gestionclient.route');
+const gestionutilisateursRoutes = require('./routes/admin/gestionutilisateur.route');
 
 // Serveur fichiers statiques pour les uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -29,5 +30,7 @@ app.use('/sign/auth', authRoutes);
 app.use('/sign/account', accountRoutes);
 app.use('/sign/professionnel/document', generationrapportRoutes);
 app.use('/sign/professionnel/client', gestionclientRoutes);
+app.use('/sign/admin', gestionutilisateursRoutes);
+
 
 module.exports = app;

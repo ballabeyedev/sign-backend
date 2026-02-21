@@ -37,6 +37,25 @@ class GestionUtilisateurService {
     }
   }
 
+  // -------------------- NOMBRE D'UTILISATEURS --------------------
+  static async nombreUtilisateurs() {
+    try {
+      const total = await Utilisateur.count({
+        where: {
+          role: { [Op.ne]: 'admin' } 
+        }
+      });
+
+      return {
+        message: "Nombre total d'utilisateurs (hors admins)",
+        totalUtilisateurs: total
+      };
+    } catch (error) {
+      console.error("Erreur lors du comptage des utilisateurs :", error);
+      throw error;
+    }
+  }
+
 }
 
 module.exports = GestionUtilisateurService;
