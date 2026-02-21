@@ -1,5 +1,5 @@
 const GestionUtilisateurService = require('../../services/admin/gestionutilisateur.service');
-const formatUser = require('../utils/formatUser'); // si tu veux formater les utilisateurs
+const formatUser = require('../../utils/formatUser'); // si tu veux formater les utilisateurs
 
 // -------------------- LISTE DES UTILISATEURS --------------------
 exports.listeUtilisateur = async (req, res) => {
