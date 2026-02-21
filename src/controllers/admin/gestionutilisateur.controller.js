@@ -37,6 +37,7 @@ exports.nombreUtilisateur = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // -------------------- NOMBRE DE PARTICULIERS --------------------
 exports.nombreParticuliers = async (req, res) => {
   try {
@@ -70,6 +71,16 @@ exports.nombreProfessionnels = async (req, res) => {
     return res.status(200).json({
       success: true,
       count: count,
+=======
+// -------------------- NOMBRE PROFESSIONNELS --------------------
+exports.nombreUtilisateur = async (req, res) => {
+  try {
+    const count = await Professionnel.countDocuments();
+    return res.status(200).json({
+      success: true,
+      count: count,
+      message: `Nombre de professionnels récupéré avec succès`
+>>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
     });
   } catch (error) {
     console.error('Erreur lors du comptage des professionnels:', error);
@@ -80,4 +91,8 @@ exports.nombreProfessionnels = async (req, res) => {
       error: error.message
     });
   }
+<<<<<<< HEAD
 }  
+=======
+};
+>>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd

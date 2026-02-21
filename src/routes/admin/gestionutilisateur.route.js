@@ -16,6 +16,7 @@ router.get(
 );
 
 router.get(
+<<<<<<< HEAD
   '/nombre-particuliers',
   auth,
   gestionUtilisateurController.nombreParticuliers
@@ -31,5 +32,10 @@ router.get(
   '/nombre-professionnel',
   auth,
   gestionUtilisateurController.nombreProfessionnels
+=======
+  '/nombre-professionnel',
+  auth,
+  gestionUtilisateurController.nombreProfessionnel
+>>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
 );
 module.exports = router;

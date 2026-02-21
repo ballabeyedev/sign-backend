@@ -55,6 +55,7 @@ class GestionUtilisateurService {
     }
   }
 
+<<<<<<< HEAD
   // -------------------- NOMBRE DE PARTICULIERS --------------------
   static async nombreParticuliers() {
     try {
@@ -95,12 +96,18 @@ class GestionUtilisateurService {
   }
 
 
+=======
+>>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
   // -------------------- NOMBRE PROFESSIONNELS --------------------
   static async nombreProfessionnels() {
     try {
       const total = await Utilisateur.count({
         where: {
+<<<<<<< HEAD
           role: "Professionnel"
+=======
+          role: { [Op.ne]: 'admin' } 
+>>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
         }
       });
 
