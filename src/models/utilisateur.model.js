@@ -44,14 +44,30 @@ const User = sequelize.define('User', {
     unique: true
   },
   role: {
-    type: DataTypes.ENUM('Admin', 'Client', 'Professionnel', 'Entreprise'),
-    defaultValue: 'Client',
+    type: DataTypes.ENUM('Admin', 'Particulier', 'Independant', 'Professionnel'),
+    defaultValue: 'Particulier',
     allowNull: false
     },
   statut: {
     type: DataTypes.ENUM('actif', 'inactif'),
     defaultValue: 'actif'
-  }
+  },
+  logo: {
+    type: DataTypes.TEXT('long'),
+    allowNull: true
+  },
+  rc: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  ninea: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  signature: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 
 }, {
   tableName: 'utilisateur',

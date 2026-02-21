@@ -7,7 +7,11 @@ const formatUser = (utilisateur) => ({
   telephone: utilisateur.telephone,
   photoProfil: utilisateur.photoProfil,
   carte_identite_national_num: utilisateur.carte_identite_national_num,
-  role: utilisateur.role
+  role: utilisateur.role,
+  logo: utilisateur.logo,
+  rc: utilisateur.rc,
+  ninea: utilisateur.ninea,
+  signature: utilisateur.signature
 });
 
 module.exports = formatUser;

@@ -37,9 +37,10 @@ exports.creerDocument = async (req, res) => {
       success: true,
       message: 'Document créé avec succès',
       data: {
-        documentId: result.id,
-        numero_facture: result.numero_facture
+        documentId: result.data.documentId,
+        numero_facture: result.data.numero_facture
       }
+
     });
 
 
@@ -100,13 +101,31 @@ exports.telechargerDocument = async (req, res) => {
       });
     }
 
+    const { pdfBuffer, numero_facture } = result.data;
+
+    // Vérifier que le buffer n'est pas vide
+    if (!pdfBuffer || pdfBuffer.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: 'Le fichier PDF est vide ou corrompu'
+      });
+    }
+
+    // Nettoyer le nom du fichier
+    const safeName = numero_facture.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const filename = `facture_${safeName}.pdf`;
+
+    // Définir les headers
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename=facture-${result.data.numero_facture}.pdf`,
-      'Content-Length': result.data.pdfBuffer.length
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': pdfBuffer.length,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     });
 
-    return res.send(result.data.pdfBuffer);
+    return res.send(pdfBuffer);
 
   } catch (error) {
     console.error('❌ Erreur téléchargement document:', error);

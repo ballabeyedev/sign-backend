@@ -3,8 +3,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { jwtConfig, bcryptConfig } = require('../config/security');
 const sequelize = require('../config/db');
-const { sendEmail } = require('../utils/mailer');
-const welcomeTemplate = require('../templates/mail/welcome.template');
 const { uploadImage } = require('../middlewares/uploadService'); // ton upload vers Cloudinary
 
 
@@ -18,9 +16,13 @@ static async register({
   mot_de_passe,
   adresse,
   telephone,
-  numero_cni,
+  carte_identite_national_num,
   photoProfil,
-  role = 'Client'
+  role = 'Particulier',
+  logo,
+  rc,
+  ninea,
+  signature
 }) {
   const t = await sequelize.transaction();
 
@@ -40,6 +42,37 @@ static async register({
       };
     }
 
+    if (telephone) {
+      const telExist = await Utilisateur.findOne({
+        where: { telephone },
+        transaction: t
+      });
+
+      if (telExist) {
+        await t.rollback();
+        return {
+          success: false,
+          message: "Ce numéro de téléphone est déjà utilisé"
+        };
+      }
+    }
+
+    if (carte_identite_national_num) {
+      const numero_cniExist = await Utilisateur.findOne({
+        where: { carte_identite_national_num },
+        transaction: t
+      });
+
+      if (numero_cniExist) {
+        await t.rollback();
+        return {
+          success: false,
+          message: "Ce numéro de carte identite est déjà utilisé"
+        };
+      }
+    }
+
+
     const hashedPassword = await bcrypt.hash(
       mot_de_passe,
       bcryptConfig.saltRounds
@@ -51,6 +84,17 @@ static async register({
       photoUrl = await uploadImage(photoProfil.path);
     }
 
+    let logoUrl= null;
+
+    if (logo && logo.path) {
+      logoUrl = await uploadImage(logo.path);
+    }
+
+    let signatureUrl= null;
+
+    if (signature && signature.path) {
+      signatureUrl = await uploadImage(signature.path);
+    }
 
     const utilisateur = await Utilisateur.create({
       nom,
@@ -59,28 +103,16 @@ static async register({
       mot_de_passe: hashedPassword,
       adresse,
       telephone,
-      carte_identite_national_num: numero_cni,
+      carte_identite_national_num,
       photoProfil: photoUrl,
-      role
+      role,
+      logo:logoUrl,
+      rc,
+      ninea,
+      signature: signatureUrl
     }, { transaction: t });
 
     await t.commit();
-
-    // Email de bienvenue (non bloquant)
-    try {
-      const html = welcomeTemplate({
-        nom: utilisateur.nom,
-        prenom: utilisateur.prenom
-      });
-
-      await sendEmail({
-        to: utilisateur.email,
-        subject: "Bienvenue sur Sign !",
-        html
-      });
-    } catch (mailError) {
-      console.error("Erreur email:", mailError);
-    }
 
     return {
       success: true,
@@ -132,7 +164,9 @@ static async register({
       telephone: utilisateur.telephone,
       photoProfil: utilisateur.photoProfil,
       carte_identite_national_num: utilisateur.carte_identite_national_num,
-      role: utilisateur.role
+      role: utilisateur.role,
+      rc:utilisateur.rc,
+      ninea: utilisateur.ninea
     }, jwtConfig.secret, { expiresIn: jwtConfig.expiresIn });
 
     return {success: true, token, utilisateur };
