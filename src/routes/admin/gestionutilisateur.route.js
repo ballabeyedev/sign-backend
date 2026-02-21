@@ -10,7 +10,7 @@ router.get(
   gestionUtilisateurController.listeUtilisateur
 );
 
-router.post(
+router.get(
   '/liste-utilisateur',
   gestionUtilisateurController.nombreUtilisateur
 );
