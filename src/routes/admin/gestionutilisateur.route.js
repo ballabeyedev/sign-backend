@@ -6,17 +6,16 @@ const auth = require('../../middlewares/auth.middleware');
 router.get(
   '/nombre-utilisateur',
   auth,
-  gestionUtilisateurController.listeUtilisateur
+  gestionUtilisateurController.nombreUtilisateur
 );
 
 router.get(
   '/liste-utilisateur',
   auth,
-  gestionUtilisateurController.nombreUtilisateur
+  gestionUtilisateurController.listeUtilisateur
 );
 
 router.get(
-<<<<<<< HEAD
   '/nombre-particuliers',
   auth,
   gestionUtilisateurController.nombreParticuliers
@@ -29,13 +28,9 @@ router.get(
 );
 
 router.get(
-  '/nombre-professionnel',
+  '/nombre-professionnels',
   auth,
   gestionUtilisateurController.nombreProfessionnels
-=======
-  '/nombre-professionnel',
-  auth,
-  gestionUtilisateurController.nombreProfessionnel
->>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
 );
+
 module.exports = router;

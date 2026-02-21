@@ -1,5 +1,5 @@
 const GestionUtilisateurService = require('../../services/admin/gestionutilisateur.service');
-const formatUser = require('../../utils/formatUser'); // pour formater les utilisateurs
+const formatUser = require('../../utils/formatUser');
 
 // -------------------- LISTE DES UTILISATEURS --------------------
 exports.listeUtilisateur = async (req, res) => {
@@ -37,7 +37,6 @@ exports.nombreUtilisateur = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 // -------------------- NOMBRE DE PARTICULIERS --------------------
 exports.nombreParticuliers = async (req, res) => {
   try {
@@ -59,40 +58,20 @@ exports.nombreIndependants = async (req, res) => {
   } catch (error) {
     console.error("Erreur dans nombreIndependants :", error);
     return res.status(500).json({
-      message: "Une erreur est survenue lors du comptage des independants"
+      message: "Une erreur est survenue lors du comptage des indépendants"
     });
   }
 };
 
-// -------------------- NOMBRE PROFESSIONNELS --------------------
+// -------------------- NOMBRE DE PROFESSIONNELS --------------------
 exports.nombreProfessionnels = async (req, res) => {
   try {
-    const count = await GestionUtilisateurService.nombreProfessionnels();
-    return res.status(200).json({
-      success: true,
-      count: count,
-=======
-// -------------------- NOMBRE PROFESSIONNELS --------------------
-exports.nombreUtilisateur = async (req, res) => {
-  try {
-    const count = await Professionnel.countDocuments();
-    return res.status(200).json({
-      success: true,
-      count: count,
-      message: `Nombre de professionnels récupéré avec succès`
->>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
-    });
+    const result = await GestionUtilisateurService.nombreProfessionnels();
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('Erreur lors du comptage des professionnels:', error);
-    
+    console.error("Erreur lors du comptage des professionnels :", error);
     return res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération du nombre de professionnels',
-      error: error.message
+      message: "Une erreur est survenue lors du comptage des professionnels"
     });
   }
-<<<<<<< HEAD
-}  
-=======
 };
->>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd

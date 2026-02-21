@@ -31,94 +31,44 @@ class GestionUtilisateurService {
       };
 
     } catch (error) {
-      console.error("Erreur lors de la récupération des utilisateurs :", error);
+      console.error(error);
       throw error;
     }
   }
 
-  // -------------------- NOMBRE D'UTILISATEURS --------------------
   static async nombreUtilisateurs() {
-    try {
-      const total = await Utilisateur.count({
-        where: {
-          role: { [Op.ne]: 'admin' }
-        }
-      });
+    const total = await Utilisateur.count({
+      where: { role: { [Op.ne]: 'admin' } }
+    });
 
-      return {
-        message: "Nombre total d'utilisateurs (hors admins)",
-        totalUtilisateurs: total
-      };
-    } catch (error) {
-      console.error("Erreur lors du comptage des utilisateurs :", error);
-      throw error;
-    }
+    return {
+      message: "Nombre total d'utilisateurs",
+      totalUtilisateurs: total
+    };
   }
 
-<<<<<<< HEAD
-  // -------------------- NOMBRE DE PARTICULIERS --------------------
   static async nombreParticuliers() {
-    try {
-      const total = await Utilisateur.count({
-        where: {
-          role: 'Particulier'
-        }
-      });
+    const total = await Utilisateur.count({
+      where: { role: 'Particulier' }
+    });
 
-      return {
-        message: "Nombre total de particuliers",
-        totalParticuliers: total
-      };
-    } catch (error) {
-      console.error("Erreur lors du comptage des particuliers :", error);
-      throw error;
-    }
+    return { totalParticuliers: total };
   }
 
-
-  // -------------------- NOMBRE D'INDEPENDANTS --------------------
   static async nombreIndependants() {
-    try {
-      const total = await Utilisateur.count({
-        where: {
-          role: 'Independant'
-        }
-      });
+    const total = await Utilisateur.count({
+      where: { role: 'Independant' }
+    });
 
-      return {
-        message: "Nombre total d'Independant",
-        totalIndependant: total
-      };
-    } catch (error) {
-      console.error("Erreur lors du comptage des independants :", error);
-      throw error;
-    }
+    return { totalIndependants: total };
   }
 
-
-=======
->>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
-  // -------------------- NOMBRE PROFESSIONNELS --------------------
   static async nombreProfessionnels() {
-    try {
-      const total = await Utilisateur.count({
-        where: {
-<<<<<<< HEAD
-          role: "Professionnel"
-=======
-          role: { [Op.ne]: 'admin' } 
->>>>>>> a5ba6788bb25efcf82b187c1f3759125cb8f69bd
-        }
-      });
+    const total = await Utilisateur.count({
+      where: { role: 'Professionnel' }
+    });
 
-      return {
-        message: "Nombre total de professionnels",
-        totalProfessionnels: total
-      };
-    } catch (error) {
-      console.error("Erreur lors du comptage des professionnels :", error);
-      throw error;
-    }
+    return { totalProfessionnels: total };
   }
 
 }
