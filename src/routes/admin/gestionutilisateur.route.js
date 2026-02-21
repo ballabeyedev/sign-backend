@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const gestionUtilisateurController = require('../../controllers/admin/gestionutilisateur.controller');
-const upload = require('../middlewares/upload.middleware');
-const auth = require('../middlewares/auth.middleware');
+const auth = require('../../middlewares/auth.middleware');
 
 router.get(
   '/nombre-utilisateur',
