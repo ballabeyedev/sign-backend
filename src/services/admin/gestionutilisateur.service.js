@@ -1,5 +1,4 @@
 const Utilisateur = require('../../models/utilisateur.model');
-const sequelize = require('../../config/db');
 const { Op } = require('sequelize');
 
 class GestionUtilisateurService {
@@ -42,7 +41,7 @@ class GestionUtilisateurService {
     try {
       const total = await Utilisateur.count({
         where: {
-          role: { [Op.ne]: 'admin' } 
+          role: { [Op.ne]: 'admin' }
         }
       });
 
@@ -52,6 +51,65 @@ class GestionUtilisateurService {
       };
     } catch (error) {
       console.error("Erreur lors du comptage des utilisateurs :", error);
+      throw error;
+    }
+  }
+
+  // -------------------- NOMBRE DE PARTICULIERS --------------------
+  static async nombreParticuliers() {
+    try {
+      const total = await Utilisateur.count({
+        where: {
+          role: 'Particulier'
+        }
+      });
+
+      return {
+        message: "Nombre total de particuliers",
+        totalParticuliers: total
+      };
+    } catch (error) {
+      console.error("Erreur lors du comptage des particuliers :", error);
+      throw error;
+    }
+  }
+
+
+  // -------------------- NOMBRE D'INDEPENDANTS --------------------
+  static async nombreIndependants() {
+    try {
+      const total = await Utilisateur.count({
+        where: {
+          role: 'Independant'
+        }
+      });
+
+      return {
+        message: "Nombre total d'Independant",
+        totalIndependant: total
+      };
+    } catch (error) {
+      console.error("Erreur lors du comptage des independants :", error);
+      throw error;
+    }
+  }
+
+
+  // -------------------- NOMBRE PROFESSIONNELS --------------------
+  static async nombreProfessionnels() {
+    try {
+      const total = await Utilisateur.count({
+        where: {
+          role: "Professionnel"
+        }
+      });
+
+      return {
+        message: "Nombre total de professionnels",
+        totalProfessionnels: total
+      };
+    } catch (error) {
+      console.error("Erreur lors du comptage des professionnels :", error);
       throw error;
     }
   }

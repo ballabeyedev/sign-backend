@@ -1,4 +1,4 @@
-const Facture = require('../../models/facture.model');
+const Facture = require('../../models/document.model');
 
 class GestionFactureService {
 
