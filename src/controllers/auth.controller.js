@@ -60,11 +60,8 @@ exports.inscriptionUser = async (req, res) => {
 
 
 exports.login = async (req, res) => {
-  const { email, telephone, mot_de_passe } = req.body;
-  
-  // Accepter soit email soit telephone comme identifiant
-  const identifiant = email || telephone;
-  
+  const { identifiant, mot_de_passe } = req.body; 
+
   if (!identifiant || !mot_de_passe) {
     return res.status(400).json({ message: 'Email/Téléphone et mot de passe sont obligatoires' });
   }
