@@ -3,38 +3,28 @@ const { Op } = require('sequelize');
 
 class GestionUtilisateurService {
 
-  static async listerUtilisateurs({ page = 1, limit = 10 }) {
-    try {
-      const currentPage = Math.max(1, parseInt(page, 10));
-      const pageSize = Math.max(1, parseInt(limit, 10));
-      const offset = (currentPage - 1) * pageSize;
+  static async listerUtilisateurs() {
+  try {
 
-      const { count, rows } = await Utilisateur.findAndCountAll({
-        attributes: { exclude: ['mot_de_passe'] },
-        where: {
-          role: { [Op.ne]: 'Admin' }
-        },
-        limit: pageSize,
-        offset,
-        order: [['createdAt', 'DESC']]
-      });
+    const utilisateurs = await Utilisateur.findAll({
+      attributes: { exclude: ['mot_de_passe'] },
+      where: {
+        role: { [Op.ne]: 'Admin' }
+      },
+      order: [['createdAt', 'DESC']]
+    });
 
-      return {
-        message: "Liste des utilisateurs",
-        pagination: {
-          totalUtilisateurs: count,
-          totalPages: Math.ceil(count / pageSize),
-          currentPage,
-          pageSize
-        },
-        utilisateurs: rows
-      };
+    return {
+      message: "Liste des utilisateurs",
+      total: utilisateurs.length,
+      utilisateurs
+    };
 
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+  } catch (error) {
+    console.error("Erreur listerUtilisateurs :", error);
+    throw error;
   }
+}
 
   static async nombreUtilisateurs() {
     const total = await Utilisateur.count({

@@ -4,15 +4,15 @@ const formatUser = require('../../utils/formatUser');
 // -------------------- LISTE DES UTILISATEURS --------------------
 exports.listeUtilisateur = async (req, res) => {
   try {
-    const { page, limit } = req.query;
+    // On récupère tous les utilisateurs (plus besoin de page/limit)
+    const result = await GestionUtilisateurService.listerUtilisateurs();
 
-    const result = await GestionUtilisateurService.listerUtilisateurs({ page, limit });
-
+    // Formater les utilisateurs si nécessaire
     const utilisateursFormates = result.utilisateurs.map(user => formatUser(user));
 
     return res.status(200).json({
       message: result.message,
-      pagination: result.pagination,
+      total: result.total,
       utilisateurs: utilisateursFormates
     });
 
