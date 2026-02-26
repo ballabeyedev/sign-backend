@@ -34,13 +34,13 @@ router.get(
 );
 
 router.patch(
-  '/activer/:id',
+  '/activer-utilisateur/:id',
   auth,
   gestionUtilisateurController.activerUtilisateur
 );
 
 router.patch(
-  '/desactiver/:id',
+  '/desactiver-utilisateur/:id',
   auth,
   gestionUtilisateurController.desactiverUtilisateur
 );
