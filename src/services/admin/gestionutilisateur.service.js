@@ -12,7 +12,7 @@ class GestionUtilisateurService {
       const { count, rows } = await Utilisateur.findAndCountAll({
         attributes: { exclude: ['mot_de_passe'] },
         where: {
-          role: { [Op.ne]: 'admin' }
+          role: { [Op.ne]: 'Admin' }
         },
         limit: pageSize,
         offset,
@@ -20,7 +20,7 @@ class GestionUtilisateurService {
       });
 
       return {
-        message: "Liste des utilisateurs (hors admins)",
+        message: "Liste des utilisateurs",
         pagination: {
           totalUtilisateurs: count,
           totalPages: Math.ceil(count / pageSize),
@@ -38,7 +38,7 @@ class GestionUtilisateurService {
 
   static async nombreUtilisateurs() {
     const total = await Utilisateur.count({
-      where: { role: { [Op.ne]: 'admin' } }
+      where: { role: { [Op.ne]: 'Admin' } }
     });
 
     return {
@@ -70,6 +70,50 @@ class GestionUtilisateurService {
 
     return { totalProfessionnels: total };
   }
+
+  static async activerUtilisateur(id) {
+  try {
+
+    const utilisateur = await Utilisateur.findByPk(id);
+
+    if (!utilisateur) {
+      throw new Error("Utilisateur introuvable");
+    }
+
+     await utilisateur.update({ statut: "actif" });
+
+    return {
+      message: "Utilisateur activé avec succès",
+      utilisateur
+    };
+
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+static async desactiverUtilisateur(id) {
+  try {
+
+    const utilisateur = await Utilisateur.findByPk(id);
+
+    if (!utilisateur) {
+      throw new Error("Utilisateur introuvable");
+    }
+
+    await utilisateur.update({ statut: "inactif" });
+
+    return {
+      message: "Utilisateur désactivé avec succès",
+      utilisateur
+    };
+
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
 }
 

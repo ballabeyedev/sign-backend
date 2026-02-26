@@ -33,4 +33,16 @@ router.get(
   gestionUtilisateurController.nombreProfessionnels
 );
 
+router.patch(
+  '/activer/:id',
+  auth,
+  gestionUtilisateurController.activerUtilisateur
+);
+
+router.patch(
+  '/desactiver/:id',
+  auth,
+  gestionUtilisateurController.desactiverUtilisateur
+);
+
 module.exports = router;

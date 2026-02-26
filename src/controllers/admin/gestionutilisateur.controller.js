@@ -75,3 +75,39 @@ exports.nombreProfessionnels = async (req, res) => {
     });
   }
 };
+
+// -------------------- ACTIVER UTILISATEUR --------------------
+exports.activerUtilisateur = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await GestionUtilisateurService.activerUtilisateur(id);
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error("Erreur dans activerUtilisateur :", error);
+
+    return res.status(400).json({
+      message: error.message || "Impossible d'activer l'utilisateur"
+    });
+  }
+};
+
+// -------------------- DESACTIVER UTILISATEUR --------------------
+exports.desactiverUtilisateur = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await GestionUtilisateurService.desactiverUtilisateur(id);
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error("Erreur dans desactiverUtilisateur :", error);
+
+    return res.status(400).json({
+      message: error.message || "Impossible de désactiver l'utilisateur"
+    });
+  }
+};
