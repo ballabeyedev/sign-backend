@@ -17,6 +17,26 @@ class GestionFactureService {
     }
   }
 
+
+  // -------------------- CONSULTER UNE FACTURE PAR ID --------------------
+  static async consulterFacture(id) {
+    try {
+      const facture = await Facture.findByPk(id);
+
+      if (!facture) {
+        throw new Error("Facture introuvable");
+      }
+
+      return {
+        message: "Facture trouvée avec succès",
+        facture
+      };
+
+    } catch (error) {
+      console.error("Erreur lors de la consultation de la facture :", error);
+      throw error;
+    }
+  }
 }
 
 module.exports = GestionFactureService;

@@ -12,3 +12,16 @@ exports.nombreFactures = async (req, res) => {
     });
   }
 };
+
+exports.consulterFacture = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await GestionFactureService.consulterFacture(id);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Erreur dans consulterFacture :", error);
+    return res.status(404).json({
+      message: error.message
+    });
+  }
+};

@@ -10,4 +10,11 @@ router.get(
   gestionFactureController.nombreFactures
 );
 
+// -------------------- CONSULTER FACTURE --------------------
+router.get(
+  '/consulter-facture/:id',
+  auth,
+  gestionFactureController.consulterFacture
+);
+
 module.exports = router;
