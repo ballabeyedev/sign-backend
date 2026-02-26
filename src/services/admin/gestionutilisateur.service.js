@@ -52,7 +52,10 @@ class GestionUtilisateurService {
       where: { role: 'Particulier' }
     });
 
-    return { totalParticuliers: total };
+    return { 
+      message: "Nombre total particulier",
+      totalParticuliers: total 
+    };
   }
 
   static async nombreIndependants() {
@@ -60,7 +63,10 @@ class GestionUtilisateurService {
       where: { role: 'Independant' }
     });
 
-    return { totalIndependants: total };
+    return {
+      message: "Nombre total d'independant",
+      totalIndependants: total 
+    };
   }
 
   static async nombreProfessionnels() {
@@ -68,7 +74,10 @@ class GestionUtilisateurService {
       where: { role: 'Professionnel' }
     });
 
-    return { totalProfessionnels: total };
+    return {
+      message: "Nombre total de professionnel",
+      totalProfessionnels: total 
+    };
   }
 
   static async activerUtilisateur(id) {
