@@ -159,7 +159,9 @@ static async rechercherClient({
   prenom
 }) {
   try {
-    const whereClause = {};
+    const whereClause = {
+      role: 'Particulier'  
+    };
 
     if (carte_identite_national_num) {
       whereClause.carte_identite_national_num = carte_identite_national_num;
@@ -170,29 +172,34 @@ static async rechercherClient({
     }
 
     if (nom) {
-      whereClause.nom = { [Op.iLike]: `%${nom}%` }; // insensible à la casse (PostgreSQL)
+      whereClause.nom = { [Op.iLike]: `%${nom}%` };
     }
 
     if (prenom) {
       whereClause.prenom = { [Op.iLike]: `%${prenom}%` };
     }
 
-    // Si aucun critère
-    if (Object.keys(whereClause).length === 0) {
+    // ✅ si aucun critère (hors rôle)
+    if (
+      !carte_identite_national_num &&
+      !telephone &&
+      !nom &&
+      !prenom
+    ) {
       return { error: "Veuillez fournir au moins un critère de recherche" };
     }
 
     const utilisateurs = await Utilisateur.findAll({
       where: whereClause,
-      attributes: { exclude: ['mot_de_passe'] } // sécurité
+      attributes: { exclude: ['mot_de_passe'] }
     });
 
     if (!utilisateurs.length) {
-      return { message: "Aucun client trouvé" };
+      return { message: "Aucun client particulier trouvé" };
     }
 
     return {
-      message: "Client(s) trouvé(s)",
+      message: "Client(s) particulier trouvé(s)",
       utilisateurs
     };
 
