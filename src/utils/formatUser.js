@@ -11,6 +11,7 @@ const formatUser = (utilisateur) => ({
   logo: utilisateur.logo,
   rc: utilisateur.rc,
   ninea: utilisateur.ninea,
+  statut: utilisateur.statut,
   signature: utilisateur.signature
 });
 
