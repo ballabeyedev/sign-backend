@@ -187,18 +187,23 @@ ${items.map(i => `
 
 <!-- TOTALS -->
 <div class="totals">
-  <div><span>Total HT</span><span>${format(totalHT)} FCFA</span></div>
-  <div><span>TVA (${TVA_RATE * 100}%)</span><span>${format(tvaAmount)} FCFA</span></div>
-  <div><strong>Total TTC</strong><strong>${format(totalTTC)} FCFA</strong></div>
+  <div><span>Total HT: </span><span>${format(totalHT)} FCFA</span></div>
+  <div><span>TVA (${TVA_RATE * 100}%): </span><span>${format(tvaAmount)} FCFA</span></div>
+  <div><strong>Total TTC: </strong><strong>${format(totalTTC)} FCFA</strong></div>
 </div>
 
 <div class="totals">
-  <div><span>Avance</span><span>${format(avance)} FCFA</span></div>
-  <div><strong>Reste à payer</strong><strong>${format(totalAPayer)} FCFA</strong></div>
+  <div><span>Avance: </span><span>${format(avance)} FCFA</span></div>
+  <div><strong>Reste à payer: </strong><strong>${format(totalAPayer)} FCFA</strong></div>
 </div>
 
 <br>
-Mode de paiement : <strong>${moyen_paiement}</strong>
+<table style="width:300px; margin-top:12px; border-collapse: collapse;">
+  <tr>
+    <td style="font-weight:bold; padding:6px 8px; border:1px solid #333;">Mode de paiement</td>
+    <td style="padding:6px 8px; border:1px solid #333;">${moyen_paiement}</td>
+  </tr>
+</table>
 
 <!-- LIEU & DATE ALIGNÉS -->
 <div class="lieu-date">
