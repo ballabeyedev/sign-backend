@@ -80,14 +80,16 @@ exports.rechercherClient = async (req, res) => {
       carte_identite_national_num,
       telephone,
       nom,
-      prenom
+      prenom,
+      email
     } = req.query;
 
     const result = await GestionClientService.rechercherClient({
       carte_identite_national_num,
       telephone,
       nom,
-      prenom
+      prenom,
+      email
     });
 
     if (result.error) {

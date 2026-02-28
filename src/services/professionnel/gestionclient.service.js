@@ -152,6 +152,7 @@ class GestionClientService {
 }
 
 // -------------------- RECHERCHE CLIENT --------------------
+// -------------------- RECHERCHE CLIENT --------------------
 static async rechercherClient({
   carte_identite_national_num = null,
   telephone = null,
@@ -160,38 +161,44 @@ static async rechercherClient({
   email = null
 }) {
   try {
-    // Construction dynamique du where
-    const whereClause = {
-      role: 'Particulier'  
-    };
-
-    if (carte_identite_national_num) {
-      whereClause.carte_identite_national_num = carte_identite_national_num;
-    }
-
-    if (telephone) {
-      whereClause.telephone = telephone;
-    }
-
-    if (nom) {
-      whereClause.nom = { [Op.iLike]: `%${nom}%` };
-    }
-
-    if (prenom) {
-      whereClause.prenom = { [Op.iLike]: `%${prenom}%` };
-    }
-
-    if (email) {
-      whereClause.email = { [Op.iLike]: `%${email}%` };
-    }
-
-    if (Object.keys(whereClause).length === 1) { 
+    // Si aucun critère fourni, on renvoie une erreur
+    if (!carte_identite_national_num &&
+        !telephone &&
+        !nom &&
+        !prenom &&
+        !email) {
       return { error: "Veuillez fournir au moins un critère de recherche" };
     }
 
-    // Recherche dans la base
+    // Construire la recherche avec OR pour tous les champs fournis
+    const conditions = [];
+
+    if (carte_identite_national_num) {
+      conditions.push({ carte_identite_national_num });
+    }
+
+    if (telephone) {
+      conditions.push({ telephone });
+    }
+
+    if (nom) {
+      conditions.push({ nom: { [Op.iLike]: `%${nom}%` } });
+    }
+
+    if (prenom) {
+      conditions.push({ prenom: { [Op.iLike]: `%${prenom}%` } });
+    }
+
+    if (email) {
+      conditions.push({ email: { [Op.iLike]: `%${email}%` } });
+    }
+
+    // Recherche avec role = Particulier + OR sur tous les critères
     const utilisateurs = await Utilisateur.findAll({
-      where: whereClause,
+      where: {
+        role: 'Particulier',
+        [Op.or]: conditions
+      },
       attributes: { exclude: ['mot_de_passe'] }
     });
 
