@@ -195,8 +195,9 @@ static async rechercherClient({
 
     // Recherche avec role = Particulier + OR sur tous les critères
     const utilisateurs = await Utilisateur.findAll({
-      where: {
+    where: {
         role: 'Particulier',
+        statut: 'actif',      
         [Op.or]: conditions
       },
       attributes: { exclude: ['mot_de_passe'] }
