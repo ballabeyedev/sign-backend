@@ -185,8 +185,7 @@ static async rechercherClient({
       whereClause.email = { [Op.iLike]: `%${email}%` };
     }
 
-    // ✅ Vérification si au moins un critère est fourni (hors rôle)
-    if (Object.keys(whereClause).length === 1) { // seul role est présent
+    if (Object.keys(whereClause).length === 1) { 
       return { error: "Veuillez fournir au moins un critère de recherche" };
     }
 
