@@ -1,4 +1,6 @@
 const Facture = require('../../models/document.model');
+const DocumentItem = require('../../models/documentItem.model');
+const Utilisateur = require('../../models/utilisateur.model');
 
 class GestionFactureService {
 
@@ -40,7 +42,7 @@ class GestionFactureService {
 
    static async listeFacture() {
       try {
-        const documents = await Document.findAll({
+        const documents = await Facture.findAll({
           include: [
             {
               model: Utilisateur,
