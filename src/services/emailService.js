@@ -27,7 +27,7 @@ async function envoyerDocumentEmail({
 
     // 📩 envoyer au client
     await resend.emails.send({
-      from: 'Facturation <signsn2026@gmail.com>',
+      from: 'Facturation <onboarding@resend.dev>',
       to: emailClient,
       subject,
       html,
@@ -36,7 +36,7 @@ async function envoyerDocumentEmail({
 
     // 📩 envoyer au professionnel
     await resend.emails.send({
-      from: 'Facturation <signsn2026@gmail.com>',
+      from: 'Facturation <onboarding@resend.dev>',
       to: emailProfessionnel,
       subject: `Copie envoyée au client — ${numero_facture}`,
       html,

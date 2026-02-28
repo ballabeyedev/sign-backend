@@ -107,31 +107,36 @@ class GestionDocumentService {
       // 7️⃣ PDF
       const html = templateDocument({
         numeroFacture: numero_facture,
+
         nomClient: `${client.nom} ${client.prenom}`,
-        cniClient: `${client.carte_identite_national_num} ${client.carte_identite_national_num}`,
+        cniClient: client.carte_identite_national_num,
+
         nomUtilisateur: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
-        telephone: `${utilisateurConnecte.telephone}`,
-        email: `${utilisateurConnecte.email}`,
-        logo: `${utilisateurConnecte.logo}`,
-        rc: `${utilisateurConnecte.rc} ${utilisateurConnecte.rc}`,
-        ninea: `${utilisateurConnecte.ninea} ${utilisateurConnecte.ninea}`,
+        telephone: utilisateurConnecte.telephone,
+        email: utilisateurConnecte.email,
+        logo: utilisateurConnecte.logo,
+
+        rc: utilisateurConnecte.rc,
+        ninea: utilisateurConnecte.ninea,
+
         delais_execution: delais_execution || '-',
         date_execution: date_execution
           ? new Date(date_execution).toLocaleDateString('fr-FR')
           : '-',
-        avance: avance
-          ? `${Number(avance).toLocaleString('fr-FR')} FCFA`
-          : '-',
+
+        avance: Number(avance) || 0,
         lieu_execution: lieu_execution || '-',
-        montant: montant.toLocaleString('fr-FR'),
+
+        montant,   // ⚠️ nombre
+
         moyen_paiement,
+
         items: items.map(i => ({
-          ...i,
-          prix_unitaire: Number(i.prix_unitaire).toLocaleString('fr-FR'),
-          total: (
-            Number(i.quantite) * Number(i.prix_unitaire)
-          ).toLocaleString('fr-FR')
+          designation: i.designation,
+          quantite: Number(i.quantite),
+          prix_unitaire: Number(i.prix_unitaire)
         })),
+
         dateGeneration: new Date().toLocaleDateString('fr-FR', {
           weekday: 'long',
           year: 'numeric',

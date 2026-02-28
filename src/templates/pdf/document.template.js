@@ -1,4 +1,5 @@
 module.exports = function invoiceTemplate(data) {
+
   const {
     numeroFacture,
     nomClient,
@@ -19,8 +20,8 @@ module.exports = function invoiceTemplate(data) {
     dateGeneration
   } = data;
 
+  const TVA_RATE = 0.18; // mets 0 si pas de TVA
   const totalHT = montant;
-  const TVA_RATE = 0; // changer si TVA utilisée
   const tvaAmount = totalHT * TVA_RATE;
   const totalTTC = totalHT + tvaAmount;
   const totalAPayer = totalTTC - avance;
@@ -28,254 +29,157 @@ module.exports = function invoiceTemplate(data) {
   const format = n => Number(n || 0).toLocaleString('fr-FR');
 
   return `
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Facture ${numeroFacture}</title>
-
 <style>
-@page { size:A4; margin:18mm 15mm; }
+@page { size:A4; margin:18mm; }
 
-body{
-  font-family: Arial, Helvetica, sans-serif;
-  font-size:13px;
-  color:#111;
-  background:#fff;
+body{ font-family:Arial; color:#111; }
+
+.title{
+  text-align:center;
+  font-size:42px;
+  font-weight:bold;
 }
 
-.page{
-  width:210mm;
-  min-height:297mm;
-  margin:auto;
-}
-
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-}
-
-.logo-box{
-  width:42mm;
-  height:32mm;
-  border:1.5px solid #333;
+.logo{
+  width:120px;
+  height:80px;
+  border:1px solid #000;
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-.logo-box img{
-  max-width:100%;
-  max-height:100%;
-}
-
-.title{
-  flex:1;
-  text-align:center;
-  font-size:42px;
-  font-weight:700;
-}
-
-.hr{
-  border:0;
-  border-top:1px solid #333;
-  margin:10mm 0 6mm;
-}
-
-.company{
-  display:flex;
-  justify-content:space-between;
-}
-
-.company .name{
-  font-weight:bold;
-  font-size:16px;
-}
-
-.meta{
-  display:flex;
-  justify-content:space-between;
-  margin:8mm 0;
-}
-
-.block-title{
-  font-weight:bold;
-  margin-bottom:4px;
-}
-
 table{
   width:100%;
   border-collapse:collapse;
+  margin-top:10px;
 }
 
-th, td{
+th,td{
   border:1px solid #333;
   padding:8px;
 }
 
-th{
-  background:#f2f2f2;
-}
+th{ background:#eee; }
 
 .totals{
   width:50%;
   margin-left:auto;
-  margin-top:6mm;
+  margin-top:10px;
 }
 
 .totals div{
   display:flex;
   justify-content:space-between;
+  padding:6px;
   border:1px solid #333;
-  border-top:0;
-  padding:6px 10px;
+  border-top:none;
 }
 
 .totals div:first-child{
   border-top:1px solid #333;
 }
 
-.payment{
-  border:1px solid #333;
-  margin-top:8mm;
-}
-
-.payment-row{
-  display:flex;
-  justify-content:space-between;
-  border-bottom:1px solid #333;
-  padding:8px 10px;
-}
-
-.payment-row:last-child{
-  border-bottom:0;
-}
-
-.bottom{
-  display:flex;
-  justify-content:space-between;
-  margin-top:12mm;
-}
-
-.sign{
-  margin-top:18mm;
-  text-align:right;
-}
-
-.sign-line{
-  width:70mm;
-  border-top:1px solid #333;
-  margin-top:10mm;
-}
-
 .footer{
   text-align:center;
-  margin-top:14mm;
+  margin-top:30px;
   font-size:12px;
 }
 </style>
 </head>
 
 <body>
-<div class="page">
 
-  <div class="top">
-    <div class="logo-box">
-      ${logo ? `<img src="${logo}" />` : ''}
-    </div>
-    <div class="title">FACTURE</div>
-    <div style="width:42mm;"></div>
+<div style="display:flex;justify-content:space-between;">
+  <div class="logo">
+    ${logo ? `<img src="${logo}" style="max-width:100%;max-height:100%"/>` : 'LOGO'}
   </div>
-
-  <hr class="hr">
-
-  <div class="company">
-    <div>
-      <div class="name">${nomUtilisateur}</div>
-      <div>${telephone || ''}</div>
-      <div>${email || ''}</div>
-    </div>
-    <div style="text-align:right">
-      <div><strong>RC :</strong> ${rc || '-'}</div>
-      <div><strong>NINEA :</strong> ${ninea || '-'}</div>
-    </div>
-  </div>
-
-  <hr class="hr">
-
-  <div class="meta">
-    <div>
-      <div class="block-title">CLIENT</div>
-      <div>${nomClient}</div>
-      <div>CNI : ${cniClient}</div>
-    </div>
-
-    <div style="text-align:right">
-      <div><strong>Facture N° :</strong> ${numeroFacture}</div>
-      <div><strong>Date :</strong> ${dateGeneration}</div>
-      <div><strong>Délai :</strong> ${delais_execution}</div>
-      <div><strong>Date exécution :</strong> ${date_execution}</div>
-    </div>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Désignation</th>
-        <th>Qté</th>
-        <th>Prix Unitaire</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${items.map(i => `
-        <tr>
-          <td>${i.designation}</td>
-          <td align="center">${i.quantite}</td>
-          <td align="right">${format(i.prix_unitaire)} FCFA</td>
-          <td align="right">${format(i.quantite * i.prix_unitaire)} FCFA</td>
-        </tr>
-      `).join('')}
-    </tbody>
-  </table>
-
-  <div class="totals">
-    <div><span>Total HT</span><span>${format(totalHT)} FCFA</span></div>
-    <div><span>TVA</span><span>${format(tvaAmount)} FCFA</span></div>
-    <div><strong>Total TTC</strong><strong>${format(totalTTC)} FCFA</strong></div>
-  </div>
-
-  <div class="payment">
-    <div class="payment-row">
-      <span>Mode de paiement</span>
-      <strong>${moyen_paiement}</strong>
-    </div>
-    <div class="payment-row">
-      <span>Avance</span>
-      <strong>${format(avance)} FCFA</strong>
-    </div>
-    <div class="payment-row">
-      <span>Reste à payer</span>
-      <strong>${format(totalAPayer)} FCFA</strong>
-    </div>
-  </div>
-
-  <div class="bottom">
-    <div>
-      <strong>Lieu :</strong> ${lieu_execution}
-    </div>
-    <div class="sign">
-      <div class="sign-line"></div>
-      Cachet & Signature
-    </div>
-  </div>
-
-  <div class="footer">
-    Facture générée le ${dateGeneration}
-  </div>
-
+  <div class="title">Facture</div>
+  <div></div>
 </div>
+
+<hr>
+
+<div style="display:flex;justify-content:space-between;">
+  <div>
+    <strong>${nomUtilisateur}</strong><br>
+    ${telephone}<br>
+    ${email}
+  </div>
+  <div style="text-align:right">
+    RC : ${rc || '-'}<br>
+    NINEA : ${ninea || '-'}
+  </div>
+</div>
+
+<hr>
+
+<div style="display:flex;justify-content:space-between;">
+  <div>
+    <strong>CLIENT</strong><br>
+    ${nomClient}<br>
+    CNI : ${cniClient}
+  </div>
+  <div style="text-align:right">
+    Facture N° : ${numeroFacture}<br>
+    Date : ${dateGeneration}<br>
+    Délai : ${delais_execution}<br>
+    Date exécution : ${date_execution}
+  </div>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Désignation</th>
+<th>Qté</th>
+<th>Prix Unitaire</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+${items.map(i => `
+<tr>
+<td>${i.designation}</td>
+<td align="center">${i.quantite}</td>
+<td align="right">${format(i.prix_unitaire)} FCFA</td>
+<td align="right">${format(i.quantite*i.prix_unitaire)} FCFA</td>
+</tr>`).join('')}
+</tbody>
+</table>
+
+<div class="totals">
+  <div><span>Total HT</span><span>${format(totalHT)} FCFA</span></div>
+  <div><span>TVA</span><span>${format(tvaAmount)} FCFA</span></div>
+  <div><strong>Total TTC</strong><strong>${format(totalTTC)} FCFA</strong></div>
+</div>
+
+<div class="totals">
+  <div><span>Avance</span><span>${format(avance)} FCFA</span></div>
+  <div><strong>Reste à payer</strong><strong>${format(totalAPayer)} FCFA</strong></div>
+</div>
+
+<br>
+Mode de paiement : <strong>${moyen_paiement}</strong>
+
+<br><br>
+
+Lieu : ${lieu_execution}
+
+<div style="margin-top:40px;text-align:right">
+  _____________________<br>
+  Cachet & Signature
+</div>
+
+<div class="footer">
+Facture générée par SIGN ${new Date().getFullYear()}
+</div>
+
 </body>
 </html>
 `;
