@@ -153,12 +153,14 @@ class GestionClientService {
 
 // -------------------- RECHERCHE CLIENT --------------------
 static async rechercherClient({
-  carte_identite_national_num,
-  telephone,
-  nom,
-  prenom
+  carte_identite_national_num = null,
+  telephone = null,
+  nom = null,
+  prenom = null,
+  email = null
 }) {
   try {
+    // Construction dynamique du where
     const whereClause = {
       role: 'Particulier'  
     };
@@ -179,16 +181,16 @@ static async rechercherClient({
       whereClause.prenom = { [Op.iLike]: `%${prenom}%` };
     }
 
-    // ✅ si aucun critère (hors rôle)
-    if (
-      !carte_identite_national_num &&
-      !telephone &&
-      !nom &&
-      !prenom
-    ) {
+    if (email) {
+      whereClause.email = { [Op.iLike]: `%${email}%` };
+    }
+
+    // ✅ Vérification si au moins un critère est fourni (hors rôle)
+    if (Object.keys(whereClause).length === 1) { // seul role est présent
       return { error: "Veuillez fournir au moins un critère de recherche" };
     }
 
+    // Recherche dans la base
     const utilisateurs = await Utilisateur.findAll({
       where: whereClause,
       attributes: { exclude: ['mot_de_passe'] }
