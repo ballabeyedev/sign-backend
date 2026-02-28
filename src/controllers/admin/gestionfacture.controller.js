@@ -41,7 +41,7 @@ exports.listeFacture = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: result.data
+      factures: result.factures
     });
 
   } catch (error) {

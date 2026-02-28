@@ -59,7 +59,7 @@ class GestionFactureService {
   
         return {
           success: true,
-          data: documents
+          factures: documents
         };
   
       } catch (error) {
