@@ -22,6 +22,8 @@ const generationrapportRoutes = require('./routes/professionnel/generationrappor
 const gestionclientRoutes = require('./routes/professionnel/gestionclient.route');
 const gestionutilisateursRoutes = require('./routes/admin/gestionutilisateur.route');
 const gestionfacturesRoutes = require('./routes/admin/gestionfacture.route');
+const gestionadminsRoutes = require('./routes/admin/gestionAdmin.route');
+
 
 
 // Serveur fichiers statiques pour les uploads
@@ -34,7 +36,6 @@ app.use('/sign/professionnel/document', generationrapportRoutes);
 app.use('/sign/professionnel/client', gestionclientRoutes);
 app.use('/sign/admin', gestionutilisateursRoutes);
 app.use('/sign/admin', gestionfacturesRoutes);
-
-
+app.use('/sign/admin', gestionadminsRoutes);
 
 module.exports = app;
