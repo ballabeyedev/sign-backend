@@ -118,6 +118,7 @@ class GestionDocumentService {
 
         rc: utilisateurConnecte.rc,
         ninea: utilisateurConnecte.ninea,
+        signature: utilisateurConnecte.signature,
 
         delais_execution: delais_execution || '-',
         date_execution: date_execution

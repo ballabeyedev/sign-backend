@@ -17,27 +17,34 @@ module.exports = function invoiceTemplate(data) {
     montant,
     moyen_paiement,
     items,
-    dateGeneration
+    dateGeneration,
+    signature
   } = data;
 
-  const TVA_RATE = 0.18; // mets 0 si pas de TVA
-  const totalHT = montant;
+  const TVA_RATE = 0.18; // mettre 0 si pas de TVA
+  const totalHT = Number(montant) || 0;
   const tvaAmount = totalHT * TVA_RATE;
   const totalTTC = totalHT + tvaAmount;
-  const totalAPayer = totalTTC - avance;
+  const totalAPayer = totalTTC - Number(avance);
 
   const format = n => Number(n || 0).toLocaleString('fr-FR');
 
-  return `
+  const today = new Date().toLocaleDateString('fr-FR');
 
+  return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+
 <style>
 @page { size:A4; margin:18mm; }
 
-body{ font-family:Arial; color:#111; }
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  color:#111;
+  font-size:13px;
+}
 
 .title{
   text-align:center;
@@ -57,7 +64,7 @@ body{ font-family:Arial; color:#111; }
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:10px;
+  margin-top:12px;
 }
 
 th,td{
@@ -65,18 +72,20 @@ th,td{
   padding:8px;
 }
 
-th{ background:#eee; }
+th{
+  background:#f2f2f2;
+}
 
 .totals{
   width:50%;
   margin-left:auto;
-  margin-top:10px;
+  margin-top:12px;
 }
 
 .totals div{
   display:flex;
   justify-content:space-between;
-  padding:6px;
+  padding:6px 10px;
   border:1px solid #333;
   border-top:none;
 }
@@ -85,31 +94,50 @@ th{ background:#eee; }
   border-top:1px solid #333;
 }
 
+.lieu-date{
+  display:flex;
+  justify-content:space-between;
+  margin-top:30px;
+}
+
+.signature-block{
+  text-align:right;
+  margin-top:40px;
+}
+
+.signature-img{
+  max-width:150px;
+  max-height:80px;
+}
+
 .footer{
   text-align:center;
-  margin-top:30px;
+  margin-top:40px;
   font-size:12px;
 }
 </style>
+
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div style="display:flex;justify-content:space-between;">
   <div class="logo">
-    ${logo ? `<img src="${logo}" style="max-width:100%;max-height:100%"/>` : 'LOGO'}
+    ${logo ? `<img src="${logo}" style="max-width:100%;max-height:100%;" />` : 'LOGO'}
   </div>
   <div class="title">Facture</div>
-  <div></div>
+  <div style="width:120px;"></div>
 </div>
 
 <hr>
 
+<!-- ENTREPRISE -->
 <div style="display:flex;justify-content:space-between;">
   <div>
     <strong>${nomUtilisateur}</strong><br>
-    ${telephone}<br>
-    ${email}
+    ${telephone || ''}<br>
+    ${email || ''}
   </div>
   <div style="text-align:right">
     RC : ${rc || '-'}<br>
@@ -119,12 +147,14 @@ th{ background:#eee; }
 
 <hr>
 
+<!-- CLIENT & META -->
 <div style="display:flex;justify-content:space-between;">
   <div>
     <strong>CLIENT</strong><br>
     ${nomClient}<br>
-    CNI : ${cniClient}
+    CNI : ${cniClient || '-'}
   </div>
+
   <div style="text-align:right">
     Facture N° : ${numeroFacture}<br>
     Date : ${dateGeneration}<br>
@@ -133,6 +163,7 @@ th{ background:#eee; }
   </div>
 </div>
 
+<!-- TABLE PRODUITS -->
 <table>
 <thead>
 <tr>
@@ -148,14 +179,16 @@ ${items.map(i => `
 <td>${i.designation}</td>
 <td align="center">${i.quantite}</td>
 <td align="right">${format(i.prix_unitaire)} FCFA</td>
-<td align="right">${format(i.quantite*i.prix_unitaire)} FCFA</td>
-</tr>`).join('')}
+<td align="right">${format(i.quantite * i.prix_unitaire)} FCFA</td>
+</tr>
+`).join('')}
 </tbody>
 </table>
 
+<!-- TOTALS -->
 <div class="totals">
   <div><span>Total HT</span><span>${format(totalHT)} FCFA</span></div>
-  <div><span>TVA</span><span>${format(tvaAmount)} FCFA</span></div>
+  <div><span>TVA (${TVA_RATE * 100}%)</span><span>${format(tvaAmount)} FCFA</span></div>
   <div><strong>Total TTC</strong><strong>${format(totalTTC)} FCFA</strong></div>
 </div>
 
@@ -167,15 +200,26 @@ ${items.map(i => `
 <br>
 Mode de paiement : <strong>${moyen_paiement}</strong>
 
-<br><br>
-
-Lieu : ${lieu_execution}
-
-<div style="margin-top:40px;text-align:right">
-  _____________________<br>
-  Cachet & Signature
+<!-- LIEU & DATE ALIGNÉS -->
+<div class="lieu-date">
+  <div>
+    <strong>Lieu :</strong> ${lieu_execution || '-'}
+  </div>
+  <div style="text-align:right">
+    <strong>Date :</strong> ${today}
+  </div>
 </div>
 
+<!-- SIGNATURE -->
+<div class="signature-block">
+  ${signature 
+    ? `<img src="${signature}" class="signature-img" />` 
+    : `<div style="height:60px;"></div>`
+  }
+  <div style="margin-top:8px;">Cachet & Signature</div>
+</div>
+
+<!-- FOOTER -->
 <div class="footer">
 Facture générée par SIGN ${new Date().getFullYear()}
 </div>
