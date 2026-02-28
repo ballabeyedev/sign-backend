@@ -40,7 +40,7 @@ exports.ajoutAdmin = async (req, res) => {
     role
   } = req.body;
 
-  const photoProfil = req.files['photoProfil'] ? req.files['photoProfil'][0] : null;
+  const photoProfil = req.file || null;
 
   try {
     const result = await GestionAdminService.ajoutAdmin({

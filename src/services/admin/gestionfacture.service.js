@@ -37,6 +37,37 @@ class GestionFactureService {
       throw error;
     }
   }
+
+   static async listeFacture() {
+      try {
+        const documents = await Document.findAll({
+          include: [
+            {
+              model: Utilisateur,
+              as: 'client',
+              attributes: ['id', 'nom', 'prenom', 'email']
+            },
+            {
+              model: DocumentItem,
+              as: 'items'
+            }
+          ],
+          order: [['createdAt', 'DESC']]
+        });
+  
+        return {
+          success: true,
+          data: documents
+        };
+  
+      } catch (error) {
+        console.error('❌ Erreur getMesDocuments:', error);
+        return {
+          success: false,
+          error: 'Erreur lors de la récupération des documents'
+        };
+      }
+    }
 }
 
 module.exports = GestionFactureService;

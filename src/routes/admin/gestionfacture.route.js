@@ -17,4 +17,11 @@ router.get(
   gestionFactureController.consulterFacture
 );
 
+// -------------------- LISTE FACTURE --------------------
+router.get(
+  '/liste-factures',
+  auth,
+  gestionFactureController.listeFacture
+);
+
 module.exports = router;

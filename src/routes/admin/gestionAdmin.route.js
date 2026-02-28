@@ -14,7 +14,7 @@ router.get(
 router.post(
   '/ajout-admins',
   auth,
-  upload.single('photoProfil'), // un seul fichier nommé 'photoProfil'
+  upload.single('photoProfil'),
   gestionAdminController.ajoutAdmin
 );
 
