@@ -41,35 +41,40 @@ class GestionFactureService {
   }
 
    static async listeFacture() {
-      try {
-        const documents = await Facture.findAll({
-          include: [
-            {
-              model: Utilisateur,
-              as: 'client',
-              attributes: ['id', 'nom', 'prenom', 'email']
-            },
-            {
-              model: DocumentItem,
-              as: 'items'
-            }
-          ],
-          order: [['createdAt', 'DESC']]
-        });
-  
-        return {
-          success: true,
-          factures: documents
-        };
-  
-      } catch (error) {
-        console.error('❌ Erreur getMesDocuments:', error);
-        return {
-          success: false,
-          error: 'Erreur lors de la récupération des documents'
-        };
-      }
+    try {
+      const documents = await Facture.findAll({
+        include: [
+          {
+            model: Utilisateur,
+            as: 'client',
+            attributes: ['id', 'nom', 'prenom', 'email']
+          },
+          {
+            model: Utilisateur,
+            as: 'professionnel',
+            attributes: ['id', 'nom', 'prenom', 'email']
+          },
+          {
+            model: DocumentItem,
+            as: 'items'
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      return {
+        success: true,
+        factures: documents
+      };
+
+    } catch (error) {
+      console.error('❌ Erreur listeFacture:', error);
+      return {
+        success: false,
+        error: 'Erreur lors de la récupération des factures'
+      };
     }
+}
 }
 
 module.exports = GestionFactureService;

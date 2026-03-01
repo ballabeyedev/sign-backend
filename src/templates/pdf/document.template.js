@@ -21,7 +21,7 @@ module.exports = function invoiceTemplate(data) {
     signature
   } = data;
 
-  const TVA_RATE = 0.18; // mettre 0 si pas de TVA
+  const TVA_RATE = 0.18;
   const totalHT = Number(montant) || 0;
   const tvaAmount = totalHT * TVA_RATE;
   const totalTTC = totalHT + tvaAmount;
