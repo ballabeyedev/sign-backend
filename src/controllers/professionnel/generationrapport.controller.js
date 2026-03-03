@@ -26,10 +26,10 @@ exports.creerDocument = async (req, res) => {
       utilisateurConnecte
     });
 
-    if (result.error) {
+    if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.error
+        message: result.message || result.error
       });
     }
 
