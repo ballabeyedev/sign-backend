@@ -12,7 +12,11 @@ const formatUser = (utilisateur) => ({
   rc: utilisateur.rc,
   ninea: utilisateur.ninea,
   statut: utilisateur.statut,
-  signature: utilisateur.signature
+  signature: utilisateur.signature,
+  nomEntreprise: utilisateur.nomEntreprise,
+  adresseEntreprise: utilisateur.adresseEntreprise,
+  telephoneEntreprise: utilisateur.telephoneEntreprise,
+  emailEntreprise: utilisateur.emailEntreprise
 });
 
 module.exports = formatUser;

@@ -12,7 +12,11 @@ exports.inscriptionUser = async (req, res) => {
     carte_identite_national_num,
     role,
     rc,
-    ninea
+    ninea,
+    nomEntreprise,
+    adresseEntreprise,
+    telephoneEntreprise,
+    emailEntreprise
   } = req.body;
 
   const photoProfil = req.files['photoProfil'] ? req.files['photoProfil'][0] : null;
@@ -35,7 +39,11 @@ exports.inscriptionUser = async (req, res) => {
       logo,
       rc,
       ninea,
-      signature
+      signature,
+      nomEntreprise,
+      adresseEntreprise,
+      telephoneEntreprise,
+      emailEntreprise
     });
 
     if (!result.success) {

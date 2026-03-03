@@ -22,7 +22,11 @@ static async register({
   logo,
   rc,
   ninea,
-  signature
+  signature,
+  nomEntreprise,
+  adresseEntreprise,
+  telephoneEntreprise,
+  emailEntreprise
 }) {
   const t = await sequelize.transaction();
 
@@ -72,6 +76,36 @@ static async register({
       }
     }
 
+    if (emailEntreprise) {
+      const emailEntrepriseExist = await Utilisateur.findOne({
+        where: { emailEntreprise },
+        transaction: t
+      });
+
+      if (emailEntrepriseExist) {
+        await t.rollback();
+        return {
+          success: false,
+          message: "Cet email entreprise est déjà utilisé"
+        };
+      }
+    }
+
+    if (telephoneEntreprise) {
+      const telEntrepriseExist = await Utilisateur.findOne({
+        where: { telephoneEntreprise },
+        transaction: t
+      });
+
+      if (telEntrepriseExist) {
+        await t.rollback();
+        return {
+          success: false,
+          message: "Ce téléphone entreprise est déjà utilisé"
+        };
+      }
+    }
+
 
     const hashedPassword = await bcrypt.hash(
       mot_de_passe,
@@ -109,7 +143,11 @@ static async register({
       logo:logoUrl,
       rc,
       ninea,
-      signature: signatureUrl
+      signature: signatureUrl,
+      nomEntreprise,
+      adresseEntreprise,
+      telephoneEntreprise,
+      emailEntreprise
     }, { transaction: t });
 
     await t.commit();
