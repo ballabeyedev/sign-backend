@@ -87,7 +87,6 @@ class GestionDocumentService {
         lieu_execution: lieu_execution || null,
         montant,
         moyen_paiement,
-        status: 'EN_COURS',
         document_pdf: null
       }, { transaction });
 
