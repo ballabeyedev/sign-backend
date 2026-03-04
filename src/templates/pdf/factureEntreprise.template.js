@@ -32,7 +32,6 @@ module.exports = function invoiceTemplate(data) {
   const totalAPayer = totalTTC - Number(avance);
 
   const format = n => Number(n || 0).toLocaleString('fr-FR');
-
   const today = new Date().toLocaleDateString('fr-FR');
 
   return `
@@ -43,88 +42,39 @@ module.exports = function invoiceTemplate(data) {
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-@page { size:A4; margin:16mm 18mm; }
+@page { size: A4; margin: 16mm 18mm; }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'DM Sans', Arial, sans-serif;
   color: #111;
   font-size: 12.5px;
   background: #fff;
   line-height: 1.5;
 }
 
-/* ── HEADER ─────────────────────────────────────────── */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: 20px;
-  border-bottom: 3px solid #111;
-}
+/* ── RESET TABLES ── */
+table { border-collapse: collapse; }
+td, th { padding: 0; vertical-align: top; }
 
-.logo-box {
-  width: 110px;
-  height: 72px;
-  border: 1.5px solid #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: #888;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.logo-box img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.title-block {
-  text-align: center;
-}
-
+/* ── TYPOGRAPHY ── */
 .title-word {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 52px;
   font-weight: 900;
   letter-spacing: -1px;
   line-height: 1;
   text-transform: uppercase;
   color: #111;
+  text-align: center;
 }
 
-.title-line {
-  display: block;
+.title-underline {
   width: 60px;
   height: 2px;
   background: #111;
   margin: 6px auto 0;
-}
-
-.header-spacer { width: 110px; }
-
-/* ── DIVIDER ─────────────────────────────────────────── */
-.divider {
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 18px 0;
-}
-
-.divider-thick {
-  border: none;
-  border-top: 2px solid #111;
-  margin: 18px 0;
-}
-
-/* ── INFO ROWS ───────────────────────────────────────── */
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
 }
 
 .info-label {
@@ -133,158 +83,101 @@ body {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: #888;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
-.info-value {
-  font-size: 12.5px;
-  color: #111;
-  line-height: 1.6;
+/* ── DIVIDERS ── */
+.hr-light { border: none; border-top: 1px solid #ccc; margin: 16px 0; }
+.hr-thick { border: none; border-top: 2px solid #111; margin: 16px 0; }
+
+/* ── SECTION TAG ── */
+.section-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  background: #111;
+  padding: 3px 10px;
+  margin-bottom: 8px;
 }
 
-.info-value strong {
-  font-weight: 600;
-  font-size: 13.5px;
-}
-
-.text-right { text-align: right; }
-
-/* ── META BADGES ─────────────────────────────────────── */
-.meta-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.meta-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 10px;
+/* ── META BADGE ── */
+.meta-cell {
   border: 1px solid #ddd;
   background: #fafafa;
+  padding: 5px 10px;
 }
-
-.meta-item span:first-child {
+.meta-label {
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: #888;
+  white-space: nowrap;
+  padding-right: 12px;
 }
-
-.meta-item span:last-child {
+.meta-val {
   font-size: 12px;
   font-weight: 500;
   color: #111;
+  text-align: right;
 }
 
-/* ── TABLE ───────────────────────────────────────────── */
-.items-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
-}
+/* ── ITEMS TABLE ── */
+.items-table { width: 100%; margin-top: 16px; }
 
-.items-table thead tr {
-  background: #111;
-  color: #fff;
-}
-
+.items-table thead tr { background: #111; }
 .items-table thead th {
   padding: 10px 12px;
-  text-align: left;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
+  color: #fff;
   border: none;
+  text-align: left;
 }
-
-.items-table thead th:last-child,
-.items-table thead th:nth-child(2),
-.items-table thead th:nth-child(3) {
-  text-align: right;
-}
-
-.items-table tbody tr {
-  border-bottom: 1px solid #e8e8e8;
-}
-
-.items-table tbody tr:last-child {
-  border-bottom: 2px solid #111;
-}
+.items-table thead th.right { text-align: right; }
 
 .items-table tbody td {
   padding: 10px 12px;
   font-size: 12.5px;
   color: #222;
-  border: none;
-}
-
-.items-table tbody td:last-child,
-.items-table tbody td:nth-child(2),
-.items-table tbody td:nth-child(3) {
-  text-align: right;
-}
-
-.items-table tbody tr:nth-child(even) {
-  background: #f8f8f8;
-}
-
-/* ── TOTALS ──────────────────────────────────────────── */
-.totals-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-}
-
-.totals-box {
-  width: 52%;
-  border: 1px solid #ddd;
-}
-
-.totals-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 14px;
   border-bottom: 1px solid #e8e8e8;
+}
+.items-table tbody tr:last-child td { border-bottom: 2px solid #111; }
+.items-table tbody tr:nth-child(even) td { background: #f8f8f8; }
+.items-table tbody td.right { text-align: right; }
+
+/* ── TOTALS TABLE ── */
+.totals-table { width: 48%; margin-left: auto; margin-top: 16px; border: 1px solid #ddd; }
+
+.totals-table td {
+  padding: 8px 14px;
   font-size: 12.5px;
+  border-bottom: 1px solid #e8e8e8;
+  vertical-align: middle;
 }
+.totals-table tr:last-child td { border-bottom: none; }
+.totals-table .amount { text-align: right; }
 
-.totals-row:last-child { border-bottom: none; }
-
-.totals-row.ttc {
-  background: #f0f0f0;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.totals-divider {
-  border: none;
-  border-top: 1.5px solid #111;
-  margin: 0;
-}
-
-.totals-row.reste {
+.row-ttc td { background: #f0f0f0; font-weight: 600; font-size: 13px; }
+.row-sep td { padding: 0 !important; height: 0 !important; line-height: 0; border-top: 1.5px solid #111 !important; border-bottom: none !important; }
+.row-reste td {
   background: #111;
   color: #fff;
   font-weight: 700;
   font-size: 13.5px;
-  letter-spacing: 0.3px;
+  border-bottom: none;
 }
 
-/* ── PAYMENT ─────────────────────────────────────────── */
-.payment-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  margin-top: 14px;
-  border: 1.5px solid #111;
-}
-
-.payment-label {
+/* ── PAYMENT ── */
+.payment-wrap { margin-top: 14px; }
+.payment-table { border: 1.5px solid #111; }
+.payment-table td { vertical-align: middle; }
+.pay-label {
   background: #111;
   color: #fff;
   padding: 7px 14px;
@@ -292,63 +185,36 @@ body {
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
-
-.payment-value {
+.pay-val {
   padding: 7px 16px;
   font-size: 12.5px;
   font-weight: 500;
   color: #111;
+  white-space: nowrap;
 }
 
-/* ── FOOTER ROW ──────────────────────────────────────── */
-.bottom-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 32px;
-}
-
-.lieu-date-block {
-  font-size: 12px;
-  color: #444;
-  line-height: 2;
-}
-
-.lieu-date-block strong {
-  color: #111;
-  font-weight: 600;
-}
-
-.signature-block {
-  text-align: right;
-}
-
-.signature-img {
-  max-width: 140px;
-  max-height: 70px;
+/* ── SIGNATURE ── */
+.sig-line {
+  width: 140px;
+  height: 60px;
+  border-bottom: 1.5px solid #333;
   display: block;
   margin-left: auto;
   margin-bottom: 6px;
 }
-
-.sig-placeholder {
-  width: 140px;
-  height: 60px;
-  border-bottom: 1.5px solid #333;
-  margin-left: auto;
-  margin-bottom: 6px;
-}
-
 .sig-label {
   font-size: 9.5px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: #888;
   font-weight: 600;
+  text-align: right;
+  padding-top: 5px;
 }
 
-/* ── PAGE FOOTER ─────────────────────────────────────── */
+/* ── FOOTER ── */
 .page-footer {
   text-align: center;
   margin-top: 28px;
@@ -359,169 +225,175 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
 }
-
-/* ── SECTION TITLE ───────────────────────────────────── */
-.section-tag {
-  display: inline-block;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #fff;
-  background: #111;
-  padding: 3px 10px;
-  margin-bottom: 10px;
-}
 </style>
 </head>
-
 <body>
 
 <!-- ══ HEADER ══════════════════════════════════════════ -->
-<div class="header">
-  <div class="logo-box">
-    ${logo ? `<img src="${logo}" />` : 'LOGO'}
-  </div>
+<table width="100%" style="border-bottom: 3px solid #111; padding-bottom: 18px;">
+  <tr>
+    <td width="120" valign="middle">
+      ${logo
+        ? `<img src="${logo}" style="width:110px; height:72px; object-fit:contain; border:1.5px solid #111; display:block;" />`
+        : `<table width="110" height="72" style="border:1.5px solid #111;"><tr><td align="center" valign="middle" style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;">LOGO</td></tr></table>`
+      }
+    </td>
+    <td valign="middle" align="center">
+      <div class="title-word">Facture</div>
+      <div class="title-underline"></div>
+    </td>
+    <td width="120"></td>
+  </tr>
+</table>
 
-  <div class="title-block">
-    <div class="title-word">Facture</div>
-    <span class="title-line"></span>
-  </div>
-
-  <div class="header-spacer"></div>
-</div>
-
-<!-- ══ ENTREPRISE & UTILISATEUR ════════════════════════ -->
-<hr class="divider">
-
-<div class="info-row">
-  <div>
-    <div class="info-label">Émetteur</div>
-    <div class="info-value">
-      <strong>${nomUtilisateur}</strong><br>
+<!-- ══ ÉMETTEUR / ENTREPRISE ═══════════════════════════ -->
+<hr class="hr-light">
+<table width="100%">
+  <tr>
+    <td width="50%" valign="top" style="padding-right:20px;">
+      <div class="info-label">Émetteur</div>
+      <strong style="font-size:13.5px;">${nomUtilisateur}</strong><br>
       ${telephone || ''}<br>
       ${email || ''}
-    </div>
-  </div>
-
-  <div class="text-right">
-    <div class="info-label">Entreprise</div>
-    <div class="info-value">
-      <strong>${nomEntreprise || '-'}</strong><br>
+    </td>
+    <td width="50%" valign="top" align="right">
+      <div class="info-label">Entreprise</div>
+      <strong style="font-size:13.5px;">${nomEntreprise || '-'}</strong><br>
       ${adresseEntreprise || ''}<br>
       ${telephoneEntreprise || ''}<br>
       ${emailEntreprise || ''}<br>
       RC&nbsp;: ${rc || '-'} &nbsp;·&nbsp; NINEA&nbsp;: ${ninea || '-'}
-    </div>
-  </div>
-</div>
-
-<hr class="divider-thick">
+    </td>
+  </tr>
+</table>
+<hr class="hr-thick">
 
 <!-- ══ CLIENT & META ════════════════════════════════════ -->
-<div class="info-row" style="align-items:flex-start;">
-  <div>
-    <div class="section-tag">Client</div>
-    <div class="info-value">
-      <strong>${nomClient}</strong><br>
+<table width="100%">
+  <tr>
+    <td width="44%" valign="top" style="padding-right:16px;">
+      <div class="section-tag">Client</div><br>
+      <strong style="font-size:13.5px;">${nomClient}</strong><br>
       CNI&nbsp;: ${cniClient || '-'}
-    </div>
-  </div>
-
-  <div style="min-width:280px;">
-    <div class="meta-grid">
-      <div class="meta-item">
-        <span>N° Facture</span>
-        <span>${numeroFacture}</span>
-      </div>
-      <div class="meta-item">
-        <span>Date</span>
-        <span>${dateGeneration}</span>
-      </div>
-      <div class="meta-item">
-        <span>Délai</span>
-        <span>${delais_execution}</span>
-      </div>
-      <div class="meta-item">
-        <span>Date exécution</span>
-        <span>${date_execution}</span>
-      </div>
-    </div>
-  </div>
-</div>
+    </td>
+    <td width="56%" valign="top">
+      <table width="100%">
+        <tr>
+          <td width="50%" style="padding:0 0 5px 4px;">
+            <table width="100%" class="meta-cell">
+              <tr>
+                <td class="meta-label">N° Facture</td>
+                <td class="meta-val">${numeroFacture}</td>
+              </tr>
+            </table>
+          </td>
+          <td width="50%" style="padding:0 0 5px 5px;">
+            <table width="100%" class="meta-cell">
+              <tr>
+                <td class="meta-label">Date</td>
+                <td class="meta-val">${dateGeneration}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td width="50%" style="padding:0 0 0 4px;">
+            <table width="100%" class="meta-cell">
+              <tr>
+                <td class="meta-label">Délai</td>
+                <td class="meta-val">${delais_execution}</td>
+              </tr>
+            </table>
+          </td>
+          <td width="50%" style="padding:0 0 0 5px;">
+            <table width="100%" class="meta-cell">
+              <tr>
+                <td class="meta-label">Date exécution</td>
+                <td class="meta-val">${date_execution}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
 <!-- ══ TABLE PRODUITS ═══════════════════════════════════ -->
 <table class="items-table">
   <thead>
     <tr>
       <th>Désignation</th>
-      <th>Qté</th>
-      <th>Prix Unitaire</th>
-      <th>Total</th>
+      <th class="right" width="60">Qté</th>
+      <th class="right" width="140">Prix Unitaire</th>
+      <th class="right" width="140">Total</th>
     </tr>
   </thead>
   <tbody>
     ${items.map(i => `
     <tr>
       <td>${i.designation}</td>
-      <td>${i.quantite}</td>
-      <td>${format(i.prix_unitaire)} FCFA</td>
-      <td>${format(i.quantite * i.prix_unitaire)} FCFA</td>
+      <td class="right">${i.quantite}</td>
+      <td class="right">${format(i.prix_unitaire)} FCFA</td>
+      <td class="right">${format(i.quantite * i.prix_unitaire)} FCFA</td>
     </tr>
     `).join('')}
   </tbody>
 </table>
 
 <!-- ══ TOTAUX ═══════════════════════════════════════════ -->
-<div class="totals-wrapper">
-  <div class="totals-box">
-    <div class="totals-row">
-      <span>Total HT</span>
-      <span>${format(totalHT)} FCFA</span>
-    </div>
-    <div class="totals-row">
-      <span>TVA (${TVA_RATE * 100}%)</span>
-      <span>${format(tvaAmount)} FCFA</span>
-    </div>
-    <div class="totals-row ttc">
-      <span>Total TTC</span>
-      <span>${format(totalTTC)} FCFA</span>
-    </div>
-    <hr class="totals-divider">
-    <div class="totals-row">
-      <span>Avance versée</span>
-      <span>${format(avance)} FCFA</span>
-    </div>
-    <div class="totals-row reste">
-      <span>Reste à payer</span>
-      <span>${format(totalAPayer)} FCFA</span>
-    </div>
-  </div>
-</div>
+<table class="totals-table">
+  <tr>
+    <td>Total HT</td>
+    <td class="amount">${format(totalHT)} FCFA</td>
+  </tr>
+  <tr>
+    <td>TVA (${TVA_RATE * 100}%)</td>
+    <td class="amount">${format(tvaAmount)} FCFA</td>
+  </tr>
+  <tr class="row-ttc">
+    <td>Total TTC</td>
+    <td class="amount">${format(totalTTC)} FCFA</td>
+  </tr>
+  <tr class="row-sep"><td colspan="2"></td></tr>
+  <tr>
+    <td>Avance versée</td>
+    <td class="amount">${format(avance)} FCFA</td>
+  </tr>
+  <tr class="row-reste">
+    <td>Reste à payer</td>
+    <td class="amount">${format(totalAPayer)} FCFA</td>
+  </tr>
+</table>
 
 <!-- ══ MODE DE PAIEMENT ═════════════════════════════════ -->
-<div>
-  <div class="payment-row">
-    <div class="payment-label">Mode de paiement</div>
-    <div class="payment-value">${moyen_paiement}</div>
-  </div>
+<div class="payment-wrap">
+  <table class="payment-table">
+    <tr>
+      <td class="pay-label">Mode de paiement</td>
+      <td class="pay-val">${moyen_paiement}</td>
+    </tr>
+  </table>
 </div>
 
 <!-- ══ BAS DE PAGE ══════════════════════════════════════ -->
-<div class="bottom-row">
-  <div class="lieu-date-block">
-    <div><strong>Lieu :</strong> ${lieu_execution || '-'}</div>
-    <div><strong>Date :</strong> ${today}</div>
-  </div>
-
-  <div class="signature-block">
-    ${signature
-      ? `<img src="${signature}" class="signature-img" />`
-      : `<div class="sig-placeholder"></div>`
-    }
-    <div class="sig-label">Cachet &amp; Signature</div>
-  </div>
-</div>
+<table width="100%" style="margin-top:32px;">
+  <tr>
+    <td valign="bottom">
+      <div style="font-size:12px; color:#444; line-height:2.2;">
+        <span style="font-weight:600; color:#111;">Lieu :</span> ${lieu_execution || '-'}<br>
+        <span style="font-weight:600; color:#111;">Date :</span> ${today}
+      </div>
+    </td>
+    <td valign="bottom" align="right">
+      ${signature
+        ? `<img src="${signature}" style="max-width:140px; max-height:70px; display:block; margin-left:auto; margin-bottom:6px;" />`
+        : `<div class="sig-line"></div>`
+      }
+      <div class="sig-label">Cachet &amp; Signature</div>
+    </td>
+  </tr>
+</table>
 
 <!-- ══ FOOTER ═══════════════════════════════════════════ -->
 <div class="page-footer">
