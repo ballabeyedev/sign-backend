@@ -1,6 +1,9 @@
 const { Document, DocumentItem, Utilisateur } = require('../../models');
 const sequelize = require('../../config/db');
 const templateDocument = require('../../templates/pdf/document.template');
+
+const templateEntreprise = require('../../templates/pdf/factureEntreprise.template');
+const templateIndependant = require('../../templates/pdf/factureIndependant.template');
 const { Op } = require('sequelize');
 const { sendEmail } = require('../../utils/mailer');
 
@@ -104,46 +107,94 @@ class GestionDocumentService {
       await transaction.commit();
 
       // 7️⃣ PDF
-      const html = templateDocument({
-        numeroFacture: numero_facture,
+      let html;
 
-        nomClient: `${client.nom} ${client.prenom}`,
-        cniClient: client.carte_identite_national_num,
+      if (utilisateurConnecte.role === 'Professionnel') {
 
-        nomUtilisateur: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
-        telephone: utilisateurConnecte.telephone,
-        email: utilisateurConnecte.email,
-        logo: utilisateurConnecte.logo,
+        // ✅ TEMPLATE ENTREPRISE
+        html = templateEntreprise({
+          numeroFacture: numero_facture,
 
-        rc: utilisateurConnecte.rc,
-        ninea: utilisateurConnecte.ninea,
-        signature: utilisateurConnecte.signature,
+          nomClient: `${client.nom} ${client.prenom}`,
+          cniClient: client.carte_identite_national_num,
 
-        delais_execution: delais_execution || '-',
-        date_execution: date_execution
-          ? new Date(date_execution).toLocaleDateString('fr-FR')
-          : '-',
+          nomUtilisateur: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
+          telephone: utilisateurConnecte.telephone,
+          email: utilisateurConnecte.email,
+          logo: utilisateurConnecte.logo,
 
-        avance: Number(avance) || 0,
-        lieu_execution: lieu_execution || '-',
+          rc: utilisateurConnecte.rc,
+          ninea: utilisateurConnecte.ninea,
+          signature: utilisateurConnecte.signature,
 
-        montant,   // ⚠️ nombre
+          nomEntreprise: utilisateurConnecte.nomEntreprise,
+          adresseEntreprise: utilisateurConnecte.adresseEntreprise,
+          telephoneEntreprise: utilisateurConnecte.telephoneEntreprise,
+          emailEntreprise: utilisateurConnecte.emailEntreprise,
 
-        moyen_paiement,
+          delais_execution: delais_execution || '-',
+          date_execution: date_execution
+            ? new Date(date_execution).toLocaleDateString('fr-FR')
+            : '-',
 
-        items: items.map(i => ({
-          designation: i.designation,
-          quantite: Number(i.quantite),
-          prix_unitaire: Number(i.prix_unitaire)
-        })),
+          avance: Number(avance) || 0,
+          lieu_execution: lieu_execution || '-',
+          montant,
+          moyen_paiement,
 
-        dateGeneration: new Date().toLocaleDateString('fr-FR', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      });
+          items: items.map(i => ({
+            designation: i.designation,
+            quantite: Number(i.quantite),
+            prix_unitaire: Number(i.prix_unitaire)
+          })),
+
+          dateGeneration: new Date().toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
+        });
+
+      } else {
+
+        // ✅ TEMPLATE INDEPENDANT
+        html = templateIndependant({
+          numeroFacture: numero_facture,
+
+          nomClient: `${client.nom} ${client.prenom}`,
+          cniClient: client.carte_identite_national_num,
+
+          nomUtilisateur: `${utilisateurConnecte.nom} ${utilisateurConnecte.prenom}`,
+          telephone: utilisateurConnecte.telephone,
+          email: utilisateurConnecte.email,
+          logo: utilisateurConnecte.logo,
+
+          delais_execution: delais_execution || '-',
+          date_execution: date_execution
+            ? new Date(date_execution).toLocaleDateString('fr-FR')
+            : '-',
+
+          avance: Number(avance) || 0,
+          lieu_execution: lieu_execution || '-',
+          montant,
+          moyen_paiement,
+
+          items: items.map(i => ({
+            designation: i.designation,
+            quantite: Number(i.quantite),
+            prix_unitaire: Number(i.prix_unitaire)
+          })),
+
+          dateGeneration: new Date().toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
+        });
+
+      }
 
       const pdfBuffer = await generatePDFBuffer(html);
       const pdfBase64 = pdfBuffer.toString('base64');
