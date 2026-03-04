@@ -8,6 +8,8 @@ module.exports = function invoiceTemplate(data) {
     telephone,
     email,
     logo,
+    rc,
+    ninea,
     delais_execution,
     date_execution,
     avance = 0,
@@ -26,6 +28,7 @@ module.exports = function invoiceTemplate(data) {
   const totalAPayer = totalTTC - Number(avance);
 
   const format = n => Number(n || 0).toLocaleString('fr-FR');
+
   const today = new Date().toLocaleDateString('fr-FR');
 
   return `
@@ -38,35 +41,24 @@ module.exports = function invoiceTemplate(data) {
 @page { size:A4; margin:18mm; }
 
 body{
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:Arial, Helvetica, sans-serif;
   color:#111;
   font-size:13px;
 }
 
 .title{
   text-align:center;
-  font-size:38px;
+  font-size:42px;
   font-weight:bold;
-  letter-spacing:2px;
 }
 
 .logo{
-  width:130px;
+  width:120px;
   height:80px;
   border:1px solid #000;
   display:flex;
   align-items:center;
   justify-content:center;
-}
-
-.section{
-  margin-top:18px;
-}
-
-hr{
-  border:none;
-  border-top:1px solid #000;
-  margin:15px 0;
 }
 
 table{
@@ -81,20 +73,19 @@ th,td{
 }
 
 th{
-  background:#f5f5f5;
-  font-weight:bold;
+  background:#f2f2f2;
 }
 
 .totals{
-  width:55%;
+  width:50%;
   margin-left:auto;
-  margin-top:15px;
+  margin-top:12px;
 }
 
 .totals div{
   display:flex;
   justify-content:space-between;
-  padding:8px 12px;
+  padding:6px 10px;
   border:1px solid #333;
   border-top:none;
 }
@@ -103,91 +94,73 @@ th{
   border-top:1px solid #333;
 }
 
-.totals strong{
-  font-size:14px;
-}
-
 .lieu-date{
   display:flex;
   justify-content:space-between;
-  margin-top:35px;
-  font-size:13px;
+  margin-top:30px;
 }
 
 .signature-block{
   text-align:right;
-  margin-top:70px;
+  margin-top:40px;
 }
 
 .signature-img{
-  max-width:160px;
-  max-height:90px;
+  max-width:150px;
+  max-height:80px;
 }
 
 .footer{
   text-align:center;
   margin-top:40px;
-  font-size:11px;
-  border-top:1px solid #000;
-  padding-top:10px;
+  font-size:12px;
 }
-
-.info-grid{
-  display:flex;
-  justify-content:space-between;
-  gap:30px;
-}
-
-.info-box{
-  width:48%;
-}
-
-.info-box strong{
-  font-size:14px;
-}
-
 </style>
+
 </head>
 
 <body>
 
 <!-- HEADER -->
-<div style="display:flex;justify-content:space-between;align-items:center;">
+<div style="display:flex;justify-content:space-between;">
   <div class="logo">
     ${logo ? `<img src="${logo}" style="max-width:100%;max-height:100%;" />` : 'LOGO'}
   </div>
-  <div class="title">FACTURE</div>
-  <div style="width:130px;"></div>
+  <div class="title">Facture</div>
+  <div style="width:120px;"></div>
 </div>
 
 <hr>
 
-<!-- UTILISATEUR -->
-<div class="section">
-  <strong>ÉMIS PAR</strong><br><br>
-  ${nomUtilisateur}<br>
-  ${telephone || ''}<br>
-  ${email || ''}
+<!-- ENTREPRISE -->
+<div style="display:flex;justify-content:space-between;">
+  <div>
+    <strong>${nomUtilisateur}</strong><br>
+    ${telephone || ''}<br>
+    ${email || ''}
+  </div>
+  <div style="text-align:right">
+    RC : ${rc || '-'}<br>
+    NINEA : ${ninea || '-'}
+  </div>
 </div>
 
 <hr>
 
 <!-- CLIENT & META -->
-<div class="info-grid section">
-
-  <div class="info-box">
-    <strong>FACTURÉ À</strong><br><br>
+<div style="display:flex;justify-content:space-between;">
+  <div>
+    <strong>CLIENT</strong><br>
     ${nomClient}<br>
     CNI : ${cniClient || '-'}
   </div>
 
-  <div class="info-box" style="text-align:right;">
-    Facture N° : <strong>${numeroFacture}</strong><br>
+  <div style="text-align:right">
+    Facture N° : ${numeroFacture}<br>
     Date : ${dateGeneration}<br>
     Délai : ${delais_execution}<br>
     Date exécution : ${date_execution}
   </div>
-
 </div>
 
 <!-- TABLE PRODUITS -->
@@ -214,26 +187,25 @@ ${items.map(i => `
 
 <!-- TOTALS -->
 <div class="totals">
-  <div><span>Total HT</span><span>${format(totalHT)} FCFA</span></div>
-  <div><span>TVA (${TVA_RATE * 100}%)</span><span>${format(tvaAmount)} FCFA</span></div>
-  <div><strong>Total TTC</strong><strong>${format(totalTTC)} FCFA</strong></div>
+  <div><span>Total HT: </span><span>${format(totalHT)} FCFA</span></div>
+  <div><span>TVA (${TVA_RATE * 100}%): </span><span>${format(tvaAmount)} FCFA</span></div>
+  <div><strong>Total TTC: </strong><strong>${format(totalTTC)} FCFA</strong></div>
 </div>
 
 <div class="totals">
-  <div><span>Avance</span><span>${format(avance)} FCFA</span></div>
-  <div><strong>Reste à payer</strong><strong>${format(totalAPayer)} FCFA</strong></div>
+  <div><span>Avance: </span><span>${format(avance)} FCFA</span></div>
+  <div><strong>Reste à payer: </strong><strong>${format(totalAPayer)} FCFA</strong></div>
 </div>
 
 <br>
-
-<table style="width:320px; margin-top:15px;">
-<tr>
-<td style="font-weight:bold;">Mode de paiement</td>
-<td>${moyen_paiement}</td>
-</tr>
+<table style="width:300px; margin-top:12px; border-collapse: collapse;">
+  <tr>
+    <td style="font-weight:bold; padding:6px 8px; border:1px solid #333;">Mode de paiement</td>
+    <td style="padding:6px 8px; border:1px solid #333;">${moyen_paiement}</td>
+  </tr>
 </table>
 
-<!-- LIEU & DATE -->
+<!-- LIEU & DATE ALIGNÉS -->
 <div class="lieu-date">
   <div>
     <strong>Lieu :</strong> ${lieu_execution || '-'}
@@ -243,18 +215,18 @@ ${items.map(i => `
   </div>
 </div>
 
-<!-- SIGNATURE TOUT EN BAS -->
+<!-- SIGNATURE -->
 <div class="signature-block">
   ${signature 
     ? `<img src="${signature}" class="signature-img" />` 
-    : `<div style="height:90px;"></div>`
+    : `<div style="height:60px;"></div>`
   }
-  <div style="margin-top:8px;">Signature</div>
+  <div style="margin-top:8px;">Cachet & Signature</div>
 </div>
 
 <!-- FOOTER -->
 <div class="footer">
-Facture générée automatiquement • © SIGN ${new Date().getFullYear()}
+Facture générée par SIGN ${new Date().getFullYear()}
 </div>
 
 </body>
