@@ -23,9 +23,10 @@ module.exports = function invoiceTemplate(data) {
     adresseEntreprise,
     telephoneEntreprise,
     emailEntreprise,
+    tva
   } = data;
 
-  const TVA_RATE = 0.18;
+  const TVA_RATE = (Number(tva) || 0) / 100;
   const totalHT = Number(montant) || 0;
   const tvaAmount = totalHT * TVA_RATE;
   const totalTTC = totalHT + tvaAmount;

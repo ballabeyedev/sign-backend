@@ -9,6 +9,7 @@ exports.creerDocument = async (req, res) => {
       delais_execution,
       date_execution,
       avance,
+      tva,
       lieu_execution,
       moyen_paiement,
       items
@@ -20,6 +21,7 @@ exports.creerDocument = async (req, res) => {
       delais_execution,
       date_execution,
       avance,
+      tva,
       lieu_execution,
       moyen_paiement,
       items,

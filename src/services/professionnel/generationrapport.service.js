@@ -46,7 +46,8 @@ class GestionDocumentService {
     lieu_execution,
     moyen_paiement = 'ESPECES',
     items,
-    utilisateurConnecte
+    utilisateurConnecte,
+    tva
   }) {
     const transaction = await sequelize.transaction();
 
@@ -89,6 +90,7 @@ class GestionDocumentService {
         avance: Number(avance) || 0,
         lieu_execution: lieu_execution || null,
         montant,
+        tva: Number(tva) || 0,
         moyen_paiement,
         document_pdf: null
       }, { transaction });
@@ -141,6 +143,7 @@ class GestionDocumentService {
           lieu_execution: lieu_execution || '-',
           montant,
           moyen_paiement,
+          tva: Number(tva) || 0,
 
           items: items.map(i => ({
             designation: i.designation,
