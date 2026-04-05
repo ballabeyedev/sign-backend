@@ -326,12 +326,25 @@ class GestionContratService {
 
 
       // ── 8. Envoi des emails ─────────────────────────────────
-      await envoyerContratEmail({
+      console.log('📧 Envoi des emails avec les informations suivantes :');
+      console.log({
         emailsLocataires: locataires.map(l => l.email),
         emailBailleur: bailleur.email,
         numero_contrat,
-        pdfBase64
+        pdfBase64: pdfBase64 ? '[PDF généré]' : '[Aucun PDF]'
       });
+
+      try {
+        await envoyerContratEmail({
+          emailsLocataires: locataires.map(l => l.email),
+          emailBailleur: bailleur.email,
+          numero_contrat,
+          pdfBase64
+        });
+        console.log('✅ Emails envoyés avec succès (ou tentative envoyée)');
+      } catch (err) {
+        console.error('❌ Erreur lors de l’envoi des emails :', err);
+      }
 
       return {
         success: true,
