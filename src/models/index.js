@@ -24,12 +24,12 @@ DocumentItem.belongsTo(Document, {
   foreignKey: 'documentId'
 });
 
-Contrat.belongsTo(User, {
+Contrat.belongsTo(Utilisateur, {
   foreignKey: 'bailleurId',
   as: 'bailleur'
 });
 
-Contrat.belongsToMany(User, {
+Contrat.belongsToMany(Utilisateur, {
   through: 'ContratLocataires',
   foreignKey: 'contratId',
   as: 'locataires'
