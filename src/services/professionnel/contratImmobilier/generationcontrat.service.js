@@ -320,8 +320,10 @@ class GestionContratService {
 
       await Contrat.update(
         { contrat_pdf: pdfBase64 },
-        { where: { id: contrat.id }, transaction }
+        { where: { id: contrat.id } }
       );
+
+      await transaction.commit();
 
       // ── 8. Envoi des emails ─────────────────────────────────
       await envoyerContratEmail({
