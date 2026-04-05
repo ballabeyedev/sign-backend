@@ -24,6 +24,9 @@ const gestionutilisateursRoutes = require('./routes/admin/gestionutilisateur.rou
 const gestionfacturesRoutes = require('./routes/admin/gestionfacture.route');
 const gestionadminsRoutes = require('./routes/admin/gestionAdmin.route');
 
+const contratBailRoutes = require('./routes/professionnel/contraImmobilier/generation.route');
+
+
 
 
 // Serveur fichiers statiques pour les uploads
@@ -34,6 +37,7 @@ app.use('/sign/auth', authRoutes);
 app.use('/sign/account', accountRoutes);
 app.use('/sign/professionnel/document', generationrapportRoutes);
 app.use('/sign/professionnel/client', gestionclientRoutes);
+app.use('/sign/professionnel/contratBail', contratBailRoutes); 
 app.use('/sign/admin', gestionutilisateursRoutes);
 app.use('/sign/admin', gestionfacturesRoutes);
 app.use('/sign/admin', gestionadminsRoutes);
