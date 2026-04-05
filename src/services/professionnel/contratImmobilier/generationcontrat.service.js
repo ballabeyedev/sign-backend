@@ -204,6 +204,7 @@ class GestionContratService {
       // ── 6. Lier les locataires (Many-to-Many) ───────────────
       await contrat.addLocataires(locatairesIds, { transaction });
 
+      // ── Commit de la transaction (création contrat + locataires)
       await transaction.commit();
 
       // ── 7. Génération du PDF ────────────────────────────────
@@ -323,7 +324,6 @@ class GestionContratService {
         { where: { id: contrat.id } }
       );
 
-      await transaction.commit();
 
       // ── 8. Envoi des emails ─────────────────────────────────
       await envoyerContratEmail({
