@@ -5,10 +5,12 @@ const auth = require('../../../middlewares/auth.middleware');
 const checkActiveUser = require('../../../middlewares/checkActiveUser.middleware');
 
 // Toutes les routes sont protégées
-router.use(authentifierUtilisateur);
+router.use(auth);
+router.use(checkActiveUser);
+
 
 // POST   /api/contrats                  → Créer un contrat de bail
-router.post('/',     auth,    checkActiveUser,         contratController.creerContrat);
+router.post('/',         contratController.creerContrat);
 
 // GET    /api/contrats                  → Lister mes contrats
 router.get('/',                   contratController.getMesContrats);
