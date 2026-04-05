@@ -10,7 +10,7 @@ router.use(checkActiveUser);
 
 
 // POST   /api/contrats                  → Créer un contrat de bail
-router.post('/',         contratController.creerContrat);
+router.post('/creation-contrat-immobilier',         contratController.creerContrat);
 
 // GET    /api/contrats                  → Lister mes contrats
 router.get('/',                   contratController.getMesContrats);
