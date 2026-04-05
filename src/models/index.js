@@ -35,12 +35,12 @@ Contrat.belongsToMany(Utilisateur, {
   as: 'locataires'
 });
 
-User.hasMany(Contrat, {
+Utilisateur.hasMany(Contrat, {
   foreignKey: 'bailleurId',
   as: 'contrats'
 });
 
-User.belongsToMany(Contrat, {
+Utilisateur.belongsToMany(Contrat, {
   through: 'ContratLocataires',
   foreignKey: 'locataireId',
   as: 'locations'
