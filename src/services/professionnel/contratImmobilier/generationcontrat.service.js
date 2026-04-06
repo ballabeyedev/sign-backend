@@ -208,7 +208,7 @@ class GestionContratService {
       await transaction.commit();
 
       // ── 7. Génération du PDF ────────────────────────────────
-      const html = templateContratBail({
+      const docxBuffer = await contratBailTemplate({
         numero_contrat,
 
         // Bailleur — toutes les infos viennent du User connecté
@@ -325,11 +325,10 @@ class GestionContratService {
         })
       });
 
-      const pdfBuffer = await generatePDFBuffer(html);
-      const pdfBase64 = pdfBuffer.toString('base64');
+      const docxBase64 = docxBuffer.toString('base64');
 
       await Contrat.update(
-        { contrat_pdf: pdfBase64 },
+        { contrat_pdf: docxBase64 },
         { where: { id: contrat.id } }
       );
 
@@ -340,7 +339,7 @@ class GestionContratService {
         emailsLocataires: locataires.map(l => l.email),
         emailBailleur: bailleur.email,
         numero_contrat,
-        pdfBase64: pdfBase64 ? '[PDF généré]' : '[Aucun PDF]'
+        docxBase64:       docxBase64 ? '[DOCX généré]' : '[Aucun fichier]'
       });
 
       try {
@@ -348,7 +347,7 @@ class GestionContratService {
           emailsLocataires: locataires.map(l => l.email),
           emailBailleur: bailleur.email,
           numero_contrat,
-          pdfBase64
+          pdfBase64:        docxBase64
         });
         console.log('✅ Emails envoyés avec succès (ou tentative envoyée)');
       } catch (err) {
