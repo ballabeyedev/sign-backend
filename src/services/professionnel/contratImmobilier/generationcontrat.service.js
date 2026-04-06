@@ -153,10 +153,10 @@ class GestionContratService {
         bien_superficie:      Number(bien.superficie)    || null,
         bien_nombre_pieces:   Number(bien.nombre_pieces) || null,
         bien_etage:           bien.etage !== undefined ? Number(bien.etage) : null,
-        bien_meuble:          Boolean(bien.meuble),
-        bien_parking:         Boolean(bien.parking),
-        bien_cave:            Boolean(bien.cave),
-        bien_balcon_terrasse: Boolean(bien.balcon_terrasse),
+        bien_meuble:          bien.meuble,
+        bien_parking:         bien.parking,
+        bien_cave:            bien.cave,
+        bien_balcon_terrasse: bien.balcon_terrasse,
         bien_usage:           bien.usage,
         bien_description:     bien.description     || null,
 
@@ -164,13 +164,13 @@ class GestionContratService {
         date_debut_bail:           new Date(bail.date_debut),
         duree_bail:                bail.duree           || null,
         date_fin_bail:             bail.date_fin ? new Date(bail.date_fin) : null,
-        renouvellement_automatique: Boolean(bail.renouvelable),
+        renouvellement_automatique: bail.renouvelable,
         duree_preavis:             bail.duree_preavis   || null,
 
         // Paiement
         loyer_mensuel:        Number(paiement.montant_loyer),
         devise:               paiement.devise               || 'FCFA',
-        charges_incluses:     Boolean(paiement.charges_incluses),
+        charges_incluses:     paiement.charges_incluses,
         montant_charges:      Number(paiement.montant_charges)  || 0,
         autres_charges:       paiement.autres_charges           || null,
         jour_paiement:        Number(paiement.jour_paiement)    || 1,
@@ -179,7 +179,7 @@ class GestionContratService {
         info_paiement:        paiement.info_paiement            || null,
 
         // Dépôt de garantie
-        depot_garantie_prevu:          Boolean(depot_garantie?.prevu),
+        depot_garantie_prevu:          depot_garantie?.prevu,
         depot_garantie_montant:        Number(depot_garantie?.montant)       || 0,
         depot_garantie_date_versement: depot_garantie?.date_versement        || null,
         depot_garantie_mode_paiement:  depot_garantie?.mode_paiement         || null,

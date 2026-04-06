@@ -257,13 +257,13 @@ module.exports = async function contratBailTemplate(data) {
     ["Code Postal",         bien.code_postal],
     ["Pays",                bien.pays],
     ["Type de bien",        bien.type],
-    ["Superficie",          bien.superficie ? `${bien.superficie} m²` : null],
+    ["Superficie",          bien.superficie ? `${bien.superficie}` : null],
     ["Nombre de pièces",    bien.nombre_pieces],
     ["Étage",               bien.etage !== undefined ? `${bien.etage}ème étage` : null],
-    ["Meublé",              bien.meuble ? "Oui" : "Non"],
-    ["Parking",             bien.parking ? "Oui" : "Non"],
-    ["Cave",                bien.cave ? "Oui" : "Non"],
-    ["Balcon / Terrasse",   bien.balcon_terrasse ? "Oui" : "Non"],
+    ["Meublé",              bien.meuble],
+    ["Parking",             bien.parking] ,
+    ["Cave",                bien.cave ],
+    ["Balcon / Terrasse",   bien.balcon_terrasse],
     ["Usage",               bien.usage],
     ["Description",         bien.description],
   ].forEach(([l, v]) => children.push(infoRow(l, v)));
@@ -277,7 +277,7 @@ module.exports = async function contratBailTemplate(data) {
     ["Date de début",                bail.date_debut],
     ["Durée du bail",                bail.duree],
     ["Date d'échéance",              bail.date_fin],
-    ["Renouvellement automatique",   bail.renouvelable ? "Oui" : "Non"],
+    ["Renouvellement automatique",   bail.renouvelable],
     ["Délai de préavis",             bail.duree_preavis],
   ].forEach(([l, v]) => children.push(infoRow(l, v)));
   children.push(spacer(200));
