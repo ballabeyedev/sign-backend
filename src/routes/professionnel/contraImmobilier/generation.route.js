@@ -13,13 +13,13 @@ router.use(checkActiveUser);
 router.post('/creation-contrat-immobilier',         contratController.creerContrat);
 
 // GET    /api/contrats                  → Lister mes contrats
-router.get('/',                   contratController.getMesContrats);
+router.get('/mes-contrat-immobilier',                   contratController.getMesContrats);
 
 // GET    /api/contrats/:id              → Détail d'un contrat
-router.get('/:id',                contratController.getContratById);
+router.get('/detail-contrat-immobilier/:id',                contratController.getContratById);
 
 // GET    /api/contrats/:id/telecharger  → Télécharger le PDF
-router.get('/:id/telecharger',    contratController.telechargerContrat);
+router.get('/telecharger-contrat-immobilier/:id',    contratController.telechargerContrat);
 
 // PATCH  /api/contrats/:id/resilier     → Résilier un contrat
 router.patch('/:id/resilier',     contratController.resilierContrat);
