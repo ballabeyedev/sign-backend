@@ -185,9 +185,9 @@ class GestionContratService {
         depot_garantie_mode_paiement:  depot_garantie?.mode_paiement         || null,
 
         // Clauses
-        sous_location_autorisee:   Boolean(clauses?.sous_location),
-        animaux_autorises:         Boolean(clauses?.animaux),
-        travaux_sans_autorisation: Boolean(clauses?.travaux),
+        sous_location_autorisee: clauses?.sous_location === 'Oui',
+        animaux_autorises:       clauses?.animaux === 'Oui',
+        travaux_sans_autorisation: clauses?.travaux === 'Oui',
         clauses_particulieres:     clauses?.personnalisees || null,
 
         // Signature
@@ -238,7 +238,16 @@ class GestionContratService {
           email:     l.email,
           telephone: l.telephone,
           adresse:   l.adresse,
-          cni:       l.carte_identite_national_num
+          cni:       l.carte_identite_national_num,
+
+          nomEntreprise:     l.nomEntreprise     || null,
+          adresseEntreprise: l.adresseEntreprise || null,
+          telEntreprise:     l.telephoneEntreprise || null,
+          emailEntreprise:   l.emailEntreprise   || null,
+          rc:                l.rc                || null,
+          ninea:             l.ninea             || null,
+
+          signature_locataire: l.signature || null
         })),
 
         // Bien
