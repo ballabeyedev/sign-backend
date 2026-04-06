@@ -2,7 +2,7 @@ const { Contrat, Utilisateur } = require('../../../models');
 const sequelize         = require('../../../config/db');
 const { Op }            = require('sequelize');
 
-const templateContratBail = require('../../../templates/pdf/contratBail/contratBail.template');
+const contratBailTemplate = require('../../../templates/pdf/contratBail/contratBail.template');
 const envoyerContratEmail = require('./emailFormatContratBail');
 
 class GestionContratService {
