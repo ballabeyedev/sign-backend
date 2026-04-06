@@ -34,342 +34,285 @@ class GestionContratService {
     }
   }
 
-  // ============================================================
-  // 🔹 CRÉER UN CONTRAT DE BAIL
-  // ============================================================
-  static async creerContrat({
-    utilisateurConnecte,  // bailleur → req.user
+// ============================================================
+// 🔹 CRÉER UN CONTRAT DE BAIL
+// ============================================================
+static async creerContrat({
+  utilisateurConnecte,
+  locatairesIds,
+  bien,
+  bail,
+  paiement,
+  depot_garantie,
+  clauses,
+  signature,
+}) {
+  const transaction = await sequelize.transaction();
 
-    locatairesIds,        // [UUID, UUID, ...] — IDs des locataires (Users existants)
+  try {
 
-    bien,
-    /*
+    // ── 1. Récupérer le bailleur complet ────────────────────
+    const bailleur = await Utilisateur.findByPk(utilisateurConnecte.id);
+    if (!bailleur) {
+      await transaction.rollback();
+      return { success: false, error: 'Bailleur introuvable' };
+    }
+
+    // ── 2. Récupérer les locataires ─────────────────────────
+    if (!Array.isArray(locatairesIds) || locatairesIds.length === 0) {
+      await transaction.rollback();
+      return { success: false, error: 'Au moins un locataire est requis' };
+    }
+
+    const locataires = await Utilisateur.findAll({
+      where: { id: { [Op.in]: locatairesIds } }
+    });
+
+    if (locataires.length !== locatairesIds.length) {
+      await transaction.rollback();
+      return { success: false, error: 'Un ou plusieurs locataires sont introuvables' };
+    }
+
+    // ── 3. Validations métier ───────────────────────────────
+    if (!paiement?.montant_loyer || Number(paiement.montant_loyer) <= 0) {
+      await transaction.rollback();
+      return { success: false, error: 'Le montant du loyer est invalide' };
+    }
+
+    if (!bail?.date_debut) {
+      await transaction.rollback();
+      return { success: false, error: 'La date de début du bail est requise' };
+    }
+
+    if (!bien?.adresse || !bien?.type || !bien?.usage) {
+      await transaction.rollback();
+      return { success: false, error: 'Les informations sur le bien sont incomplètes' };
+    }
+
+    // ── 4. Numéro de contrat ────────────────────────────────
+    const numero_contrat = await this.genererNumeroContrat();
+
+    // ── 5. Création du contrat ──────────────────────────────
+    const contrat = await Contrat.create({
+      numero_contrat,
+      bailleurId: bailleur.id,
+
+      // Bien
+      bien_adresse:         bien.adresse,
+      bien_ville:           bien.ville           || null,
+      bien_code_postal:     bien.code_postal     || null,
+      bien_pays:            bien.pays            || 'Sénégal',
+      bien_type:            bien.type,
+      bien_superficie:      Number(bien.superficie)    || null,
+      bien_nombre_pieces:   Number(bien.nombre_pieces) || null,
+      bien_etage:           bien.etage !== undefined ? Number(bien.etage) : null,
+      bien_meuble:          bien.meuble,
+      bien_parking:         bien.parking,
+      bien_cave:            bien.cave,
+      bien_balcon_terrasse: bien.balcon_terrasse,
+      bien_usage:           bien.usage,
+      bien_description:     bien.description     || null,
+
+      // Bail
+      date_debut_bail:            new Date(bail.date_debut),
+      duree_bail:                 bail.duree           || null,
+      date_fin_bail:              bail.date_fin ? new Date(bail.date_fin) : null,
+      renouvellement_automatique: bail.renouvelable,
+      duree_preavis:              bail.duree_preavis   || null,
+
+      // Paiement
+      loyer_mensuel:        Number(paiement.montant_loyer),
+      devise:               paiement.devise               || 'FCFA',
+      charges_incluses:     paiement.charges_incluses,
+      montant_charges:      Number(paiement.montant_charges)  || 0,
+      autres_charges:       paiement.autres_charges           || null,
+      jour_paiement:        Number(paiement.jour_paiement)    || 1,
+      periodicite_paiement: paiement.periodicite              || 'Mensuel',
+      moyen_paiement_loyer: paiement.moyen,
+      info_paiement:        paiement.info_paiement            || null,
+
+      // Dépôt de garantie
+      depot_garantie_prevu:          depot_garantie?.prevu,
+      depot_garantie_montant:        Number(depot_garantie?.montant)  || 0,
+      depot_garantie_date_versement: depot_garantie?.date_versement   || null,
+      depot_garantie_mode_paiement:  depot_garantie?.mode_paiement    || null,
+
+      // Clauses
+      sous_location_autorisee:   clauses?.sous_location === 'Oui',
+      animaux_autorises:         clauses?.animaux       === 'Oui',
+      travaux_sans_autorisation: clauses?.travaux       === 'Oui',
+      clauses_particulieres:     clauses?.personnalisees || null,
+
+      // Signature
+      signature_ville:         signature?.ville         || null,
+      signature_date:          signature?.date          || null,
+      signature_nom_bailleur:  signature?.nom_bailleur  || `${bailleur.prenom} ${bailleur.nom}`,
+      signature_nom_locataire: signature?.nom_locataire || locataires.map(l => `${l.prenom} ${l.nom}`).join(', '),
+
+      statut:      'Actif',
+      contrat_pdf: null,
+
+    }, { transaction });
+
+    // ── 6. Lier les locataires (Many-to-Many) ───────────────
+    await contrat.addLocataires(locatairesIds, { transaction });
+
+    // ── Commit de la transaction ────────────────────────────
+    await transaction.commit();
+
+    // ── 7. Génération du PDF ────────────────────────────────
+    const pdfBuffer = await contratBailTemplate({
+      numero_contrat,
+
+      // Bailleur
+      bailleur: {
+        nom:               bailleur.nom,
+        prenom:            bailleur.prenom,
+        email:             bailleur.email,
+        telephone:         bailleur.telephone,
+        adresse:           bailleur.adresse,
+        cni:               bailleur.carte_identite_national_num,
+        role:              bailleur.role,
+        nomEntreprise:     bailleur.nomEntreprise         || null,
+        adresseEntreprise: bailleur.adresseEntreprise     || null,
+        telEntreprise:     bailleur.telephoneEntreprise   || null,
+        emailEntreprise:   bailleur.emailEntreprise       || null,
+        rc:                bailleur.rc                    || null,
+        ninea:             bailleur.ninea                 || null,
+      },
+
+      // Locataires
+      locataires: locataires.map(l => ({
+        nom:       l.nom,
+        prenom:    l.prenom,
+        email:     l.email,
+        telephone: l.telephone,
+        adresse:   l.adresse,
+        cni:       l.carte_identite_national_num,
+        nomEntreprise:     l.nomEntreprise       || null,
+        adresseEntreprise: l.adresseEntreprise   || null,
+        telEntreprise:     l.telephoneEntreprise || null,
+        emailEntreprise:   l.emailEntreprise     || null,
+        rc:                l.rc                  || null,
+        ninea:             l.ninea               || null,
+      })),
+
+      // Bien — données brutes (le template gère l'affichage)
       bien: {
-        adresse, ville, code_postal, pays,
-        type, superficie, nombre_pieces, etage,
-        meuble, parking, cave, balcon_terrasse,
-        usage, description
-      }
-    */
+        adresse:         bien.adresse,
+        ville:           bien.ville           || null,
+        code_postal:     bien.code_postal     || null,
+        pays:            bien.pays            || 'Sénégal',
+        type:            bien.type,
+        superficie:      bien.superficie      || null,
+        nombre_pieces:   bien.nombre_pieces   || null,
+        etage:           bien.etage           !== undefined ? bien.etage : null,
+        meuble:          bien.meuble,
+        parking:         bien.parking,
+        cave:            bien.cave,
+        balcon_terrasse: bien.balcon_terrasse,
+        usage:           bien.usage,
+        description:     bien.description     || null,
+      },
 
-    bail,
-    /*
+      // Bail — dates formatées pour l'affichage
       bail: {
-        date_debut, duree, date_fin,
-        renouvelable, duree_preavis
-      }
-    */
+        date_debut:    new Date(bail.date_debut).toLocaleDateString('fr-FR'),
+        duree:         bail.duree          || null,
+        date_fin:      bail.date_fin
+          ? new Date(bail.date_fin).toLocaleDateString('fr-FR')
+          : 'Indéterminée',
+        renouvelable:  bail.renouvelable,
+        duree_preavis: bail.duree_preavis  || null,
+      },
 
-    paiement,
-    /*
+      // Paiement
       paiement: {
-        montant_loyer, devise,
-        charges_incluses, montant_charges,
-        autres_charges,    // [{ label, montant }]
-        jour_paiement, periodicite,
-        moyen,             // 'Espèces' | 'Virement bancaire' | 'Mobile Money' | 'Chèque' | 'Autre'
-        info_paiement      // { iban, numeroCompte, numeroWave, numeroOrangeMoney, nomBeneficiaire }
-      }
-    */
+        montant_loyer:    Number(paiement.montant_loyer),
+        devise:           paiement.devise             || 'FCFA',
+        charges_incluses: paiement.charges_incluses,
+        montant_charges:  Number(paiement.montant_charges) || 0,
+        autres_charges:   paiement.autres_charges     || [],
+        jour_paiement:    paiement.jour_paiement       || 1,
+        periodicite:      paiement.periodicite         || 'Mensuel',
+        moyen:            paiement.moyen               || null,
+        info_paiement:    paiement.info_paiement       || {},
+      },
 
-    depot_garantie,
-    /*
+      // Dépôt de garantie
       depot_garantie: {
-        prevu, montant, date_versement, mode_paiement
-      }
-    */
+        prevu:          depot_garantie?.prevu,
+        montant:        Number(depot_garantie?.montant) || 0,
+        date_versement: depot_garantie?.date_versement
+          ? new Date(depot_garantie.date_versement).toLocaleDateString('fr-FR')
+          : null,
+        mode_paiement:  depot_garantie?.mode_paiement || null,
+      },
 
-    clauses,
-    /*
+      // Clauses — textes lisibles pour le PDF
       clauses: {
-        sous_location, animaux, travaux, personnalisees
-      }
-    */
+        sous_location:  clauses?.sous_location  ? 'Autorisée'               : 'Non autorisée',
+        animaux:        clauses?.animaux        ? 'Autorisés'               : 'Non autorisés',
+        travaux:        clauses?.travaux        ? 'Autorisés sans accord'   : 'Soumis à autorisation préalable écrite',
+        personnalisees: clauses?.personnalisees || null,
+      },
 
-    signature
-    /*
+      // Signature
       signature: {
-        ville, date, nom_bailleur, nom_locataire
-      }
-    */
+        ville:         signature?.ville         || null,
+        date:          signature?.date
+          ? new Date(signature.date).toLocaleDateString('fr-FR')
+          : new Date().toLocaleDateString('fr-FR'),
+        nom_bailleur:  signature?.nom_bailleur  || `${bailleur.prenom} ${bailleur.nom}`,
+        nom_locataire: signature?.nom_locataire || locataires.map(l => `${l.prenom} ${l.nom}`).join(', '),
+      },
+    });
 
-  }) {
-    const transaction = await sequelize.transaction();
+    // ── 8. Stocker le PDF en base64 ─────────────────────────
+    const pdfBase64 = pdfBuffer.toString('base64');
+
+    await Contrat.update(
+      { contrat_pdf: pdfBase64 },
+      { where: { id: contrat.id } }
+    );
+
+    // ── 9. Envoi des emails ─────────────────────────────────
+    console.log('📧 Envoi des emails avec les informations suivantes :');
+    console.log({
+      emailsLocataires: locataires.map(l => l.email),
+      emailBailleur:    bailleur.email,
+      numero_contrat,
+      pdfBase64:        pdfBase64 ? '[PDF généré]' : '[Aucun fichier]',
+    });
 
     try {
-
-      // ── 1. Récupérer le bailleur complet ────────────────────
-      const bailleur = await Utilisateur.findByPk(utilisateurConnecte.id);
-      if (!bailleur) {
-        await transaction.rollback();
-        return { success: false, error: 'Bailleur introuvable' };
-      }
-
-      // ── 2. Récupérer les locataires ─────────────────────────
-      if (!Array.isArray(locatairesIds) || locatairesIds.length === 0) {
-        await transaction.rollback();
-        return { success: false, error: 'Au moins un locataire est requis' };
-      }
-
-      const locataires = await Utilisateur.findAll({
-        where: { id: { [Op.in]: locatairesIds } }
-      });
-
-      if (locataires.length !== locatairesIds.length) {
-        await transaction.rollback();
-        return { success: false, error: 'Un ou plusieurs locataires sont introuvables' };
-      }
-
-      // ── 3. Validations métier ───────────────────────────────
-      if (!paiement?.montant_loyer || Number(paiement.montant_loyer) <= 0) {
-        await transaction.rollback();
-        return { success: false, error: 'Le montant du loyer est invalide' };
-      }
-
-      if (!bail?.date_debut) {
-        await transaction.rollback();
-        return { success: false, error: 'La date de début du bail est requise' };
-      }
-
-      if (!bien?.adresse || !bien?.type || !bien?.usage) {
-        await transaction.rollback();
-        return { success: false, error: 'Les informations sur le bien sont incomplètes' };
-      }
-
-      // ── 4. Numéro de contrat ────────────────────────────────
-      const numero_contrat = await this.genererNumeroContrat();
-
-      // ── 5. Création du contrat ──────────────────────────────
-      const contrat = await Contrat.create({
-        numero_contrat,
-        bailleurId: bailleur.id,
-
-        // Bien
-        bien_adresse:         bien.adresse,
-        bien_ville:           bien.ville           || null,
-        bien_code_postal:     bien.code_postal     || null,
-        bien_pays:            bien.pays            || 'Sénégal',
-        bien_type:            bien.type,
-        bien_superficie:      Number(bien.superficie)    || null,
-        bien_nombre_pieces:   Number(bien.nombre_pieces) || null,
-        bien_etage:           bien.etage !== undefined ? Number(bien.etage) : null,
-        bien_meuble:          bien.meuble,
-        bien_parking:         bien.parking,
-        bien_cave:            bien.cave,
-        bien_balcon_terrasse: bien.balcon_terrasse,
-        bien_usage:           bien.usage,
-        bien_description:     bien.description     || null,
-
-        // Bail
-        date_debut_bail:           new Date(bail.date_debut),
-        duree_bail:                bail.duree           || null,
-        date_fin_bail:             bail.date_fin ? new Date(bail.date_fin) : null,
-        renouvellement_automatique: bail.renouvelable,
-        duree_preavis:             bail.duree_preavis   || null,
-
-        // Paiement
-        loyer_mensuel:        Number(paiement.montant_loyer),
-        devise:               paiement.devise               || 'FCFA',
-        charges_incluses:     paiement.charges_incluses,
-        montant_charges:      Number(paiement.montant_charges)  || 0,
-        autres_charges:       paiement.autres_charges           || null,
-        jour_paiement:        Number(paiement.jour_paiement)    || 1,
-        periodicite_paiement: paiement.periodicite              || 'Mensuel',
-        moyen_paiement_loyer: paiement.moyen,
-        info_paiement:        paiement.info_paiement            || null,
-
-        // Dépôt de garantie
-        depot_garantie_prevu:          depot_garantie?.prevu,
-        depot_garantie_montant:        Number(depot_garantie?.montant)       || 0,
-        depot_garantie_date_versement: depot_garantie?.date_versement        || null,
-        depot_garantie_mode_paiement:  depot_garantie?.mode_paiement         || null,
-
-        // Clauses
-        sous_location_autorisee: clauses?.sous_location === 'Oui',
-        animaux_autorises:       clauses?.animaux === 'Oui',
-        travaux_sans_autorisation: clauses?.travaux === 'Oui',
-        clauses_particulieres:     clauses?.personnalisees || null,
-
-        // Signature
-        signature_ville:         signature?.ville         || null,
-        signature_date:          signature?.date          || null,
-        signature_nom_bailleur:  signature?.nom_bailleur  || `${bailleur.prenom} ${bailleur.nom}`,
-        signature_nom_locataire: signature?.nom_locataire || locataires.map(l => `${l.prenom} ${l.nom}`).join(', '),
-
-        statut:      'Actif',
-        contrat_pdf: null
-
-      }, { transaction });
-
-      // ── 6. Lier les locataires (Many-to-Many) ───────────────
-      await contrat.addLocataires(locatairesIds, { transaction });
-
-      // ── Commit de la transaction (création contrat + locataires)
-      await transaction.commit();
-
-      // ── 7. Génération du PDF ────────────────────────────────
-      const docxBuffer = await contratBailTemplate({
-        numero_contrat,
-
-        // Bailleur — toutes les infos viennent du User connecté
-        bailleur: {
-          nom:               bailleur.nom,
-          prenom:            bailleur.prenom,
-          email:             bailleur.email,
-          telephone:         bailleur.telephone,
-          adresse:           bailleur.adresse,
-          cni:               bailleur.carte_identite_national_num,
-          signature:         bailleur.signature        || null,
-          logo:              bailleur.logo             || null,
-          role:              bailleur.role,
-          // Champs entreprise (si role === 'Professionnel')
-          nomEntreprise:     bailleur.nomEntreprise    || null,
-          adresseEntreprise: bailleur.adresseEntreprise || null,
-          telEntreprise:     bailleur.telephoneEntreprise || null,
-          emailEntreprise:   bailleur.emailEntreprise  || null,
-          rc:                bailleur.rc               || null,
-          ninea:             bailleur.ninea            || null
-        },
-
-        // Locataires — infos récupérées depuis la DB
-        locataires: locataires.map(l => ({
-          nom:       l.nom,
-          prenom:    l.prenom,
-          email:     l.email,
-          telephone: l.telephone,
-          adresse:   l.adresse,
-          cni:       l.carte_identite_national_num,
-
-          nomEntreprise:     l.nomEntreprise     || null,
-          adresseEntreprise: l.adresseEntreprise || null,
-          telEntreprise:     l.telephoneEntreprise || null,
-          emailEntreprise:   l.emailEntreprise   || null,
-          rc:                l.rc                || null,
-          ninea:             l.ninea             || null,
-
-          signature_locataire: l.signature || null
-        })),
-
-        // Bien
-        bien: {
-          adresse:         bien.adresse,
-          ville:           bien.ville           || '-',
-          code_postal:     bien.code_postal     || '-',
-          pays:            bien.pays            || 'Sénégal',
-          type:            bien.type,
-          superficie:      bien.superficie      ? `${bien.superficie} m²` : '-',
-          nombre_pieces:   bien.nombre_pieces   || '-',
-          etage:           bien.etage           !== undefined ? bien.etage : '-',
-          meuble:          bien.meuble          ? 'Oui' : 'Non',
-          parking:         bien.parking         ? 'Oui' : 'Non',
-          cave:            bien.cave            ? 'Oui' : 'Non',
-          balcon_terrasse: bien.balcon_terrasse ? 'Oui' : 'Non',
-          usage:           bien.usage,
-          description:     bien.description     || null
-        },
-
-        // Bail
-        bail: {
-          date_debut:    new Date(bail.date_debut).toLocaleDateString('fr-FR'),
-          duree:         bail.duree            || '-',
-          date_fin:      bail.date_fin
-            ? new Date(bail.date_fin).toLocaleDateString('fr-FR')
-            : 'Indéterminée',
-          renouvelable:  bail.renouvelable     ? 'Oui' : 'Non',
-          duree_preavis: bail.duree_preavis    || '-'
-        },
-
-        // Paiement
-        paiement: {
-          montant_loyer:    Number(paiement.montant_loyer),
-          devise:           paiement.devise              || 'FCFA',
-          charges_incluses: paiement.charges_incluses   ? 'Oui' : 'Non',
-          montant_charges:  Number(paiement.montant_charges) || 0,
-          autres_charges:   paiement.autres_charges      || [],
-          jour_paiement:    paiement.jour_paiement        || 1,
-          periodicite:      paiement.periodicite          || 'Mensuel',
-          moyen:            paiement.moyen,
-          info_paiement:    paiement.info_paiement        || {}
-        },
-
-        // Dépôt de garantie
-        depot_garantie: {
-          prevu:         Boolean(depot_garantie?.prevu),
-          montant:       Number(depot_garantie?.montant) || 0,
-          date_versement: depot_garantie?.date_versement
-            ? new Date(depot_garantie.date_versement).toLocaleDateString('fr-FR')
-            : '-',
-          mode_paiement: depot_garantie?.mode_paiement || '-'
-        },
-
-        // Clauses
-        clauses: {
-          sous_location:  clauses?.sous_location  ? 'Autorisée'  : 'Non autorisée',
-          animaux:        clauses?.animaux        ? 'Autorisés'  : 'Non autorisés',
-          travaux:        clauses?.travaux        ? 'Autorisés'  : 'Non autorisés',
-          personnalisees: clauses?.personnalisees || null
-        },
-
-        // Signature
-        signature: {
-          ville:         signature?.ville         || '-',
-          date:          signature?.date
-            ? new Date(signature.date).toLocaleDateString('fr-FR')
-            : new Date().toLocaleDateString('fr-FR'),
-          nom_bailleur:  signature?.nom_bailleur  || `${bailleur.prenom} ${bailleur.nom}`,
-          nom_locataire: signature?.nom_locataire || locataires.map(l => `${l.prenom} ${l.nom}`).join(', ')
-        },
-
-        dateGeneration: new Date().toLocaleDateString('fr-FR', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        })
-      });
-
-      const docxBase64 = docxBuffer.toString('base64');
-
-      await Contrat.update(
-        { contrat_pdf: docxBase64 },
-        { where: { id: contrat.id } }
-      );
-
-
-      // ── 8. Envoi des emails ─────────────────────────────────
-      console.log('📧 Envoi des emails avec les informations suivantes :');
-      console.log({
+      await envoyerContratEmail({
         emailsLocataires: locataires.map(l => l.email),
-        emailBailleur: bailleur.email,
+        emailBailleur:    bailleur.email,
         numero_contrat,
-        docxBase64:       docxBase64 ? '[DOCX généré]' : '[Aucun fichier]'
+        pdfBase64,        // ← le PDF en base64 — à attacher en pièce jointe .pdf
       });
-
-      try {
-        await envoyerContratEmail({
-          emailsLocataires: locataires.map(l => l.email),
-          emailBailleur: bailleur.email,
-          numero_contrat,
-          docxBase64: docxBase64
-        });
-        console.log('✅ Emails envoyés avec succès (ou tentative envoyée)');
-      } catch (err) {
-        console.error('❌ Erreur lors de l’envoi des emails :', err);
-      }
-
-      return {
-        success: true,
-        message: 'Contrat de bail créé avec succès',
-        data: {
-          contratId:        contrat.id,
-          numero_contrat,
-          nombreLocataires: locataires.length
-        }
-      };
-
-    } catch (error) {
-      if (!transaction.finished) await transaction.rollback();
-      console.error('❌ Erreur creerContrat:', error);
-      return { success: false, message: error.message };
+      console.log('✅ Emails envoyés avec succès');
+    } catch (err) {
+      console.error('❌ Erreur lors de l\'envoi des emails :', err);
     }
+
+    return {
+      success: true,
+      message: 'Contrat de bail créé avec succès',
+      data: {
+        contratId:        contrat.id,
+        numero_contrat,
+        nombreLocataires: locataires.length,
+      },
+    };
+
+  } catch (error) {
+    if (!transaction.finished) await transaction.rollback();
+    console.error('❌ Erreur creerContrat:', error);
+    return { success: false, message: error.message };
   }
+}
 
   // ============================================================
   // 🔹 LISTER MES CONTRATS

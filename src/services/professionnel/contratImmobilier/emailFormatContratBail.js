@@ -6,7 +6,7 @@ async function envoyerContratEmail({
   emailsLocataires,
   emailBailleur,
   numero_contrat,
-  docxBase64   // ✅ on corrige ici
+  pdfBase64   // ✅ CORRECT
 }) {
   try {
     const subject = `Contrat de bail N° ${numero_contrat}`;
@@ -21,16 +21,16 @@ async function envoyerContratEmail({
       <p>Cordialement,<br/>L'équipe de gestion immobilière</p>
     `;
 
-    // ✅ Correction ici
     const attachments = [
       {
-        filename: `contrat_${numero_contrat}.docx`, // ✅ extension correcte
-        content: docxBase64,
-        encoding: 'base64'
+        filename: `contrat_${numero_contrat}.pdf`, // ✅ PDF
+        content: pdfBase64,
+        encoding: 'base64',
+        contentType: 'application/pdf' // ✅ IMPORTANT
       }
     ];
 
-    // 📩 Envoi aux locataires
+    // 📩 Locataires
     await Promise.all(
       emailsLocataires.map(email =>
         resend.emails.send({
@@ -43,7 +43,7 @@ async function envoyerContratEmail({
       )
     );
 
-    // 📩 Copie au bailleur
+    // 📩 Bailleur
     await resend.emails.send({
       from: 'Contrat Immobilier <onboarding@resend.dev>',
       to: emailBailleur,
