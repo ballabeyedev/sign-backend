@@ -350,7 +350,7 @@ static async creerContrat({
         include: [
           {
             model:      Utilisateur,
-            as:         'bailleur',
+            as:         'locataires',
             attributes: ['id', 'nom', 'prenom', 'email', 'telephone', 'adresse']
           },
           {
