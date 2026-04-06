@@ -3,10 +3,10 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function envoyerContratEmail({
-  emailsLocataires,   // tableau d'emails
+  emailsLocataires,
   emailBailleur,
   numero_contrat,
-  pdfBase64
+  docxBase64   // ✅ on corrige ici
 }) {
   try {
     const subject = `Contrat de bail N° ${numero_contrat}`;
@@ -21,15 +21,16 @@ async function envoyerContratEmail({
       <p>Cordialement,<br/>L'équipe de gestion immobilière</p>
     `;
 
+    // ✅ Correction ici
     const attachments = [
       {
-        filename: `contrat-${numero_contrat}.pdf`,
-        content: pdfBase64,
+        filename: `contrat_${numero_contrat}.docx`, // ✅ extension correcte
+        content: docxBase64,
         encoding: 'base64'
       }
     ];
 
-    // Envoi à tous les locataires
+    // 📩 Envoi aux locataires
     await Promise.all(
       emailsLocataires.map(email =>
         resend.emails.send({
@@ -42,7 +43,7 @@ async function envoyerContratEmail({
       )
     );
 
-    // Copie au bailleur
+    // 📩 Copie au bailleur
     await resend.emails.send({
       from: 'Contrat Immobilier <onboarding@resend.dev>',
       to: emailBailleur,
@@ -52,6 +53,7 @@ async function envoyerContratEmail({
     });
 
     return true;
+
   } catch (error) {
     console.error("❌ Erreur envoi contrat:", error);
     return false;

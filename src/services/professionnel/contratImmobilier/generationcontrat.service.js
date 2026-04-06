@@ -347,7 +347,7 @@ class GestionContratService {
           emailsLocataires: locataires.map(l => l.email),
           emailBailleur: bailleur.email,
           numero_contrat,
-          pdfBase64:        docxBase64
+          docxBase64: docxBase64
         });
         console.log('✅ Emails envoyés avec succès (ou tentative envoyée)');
       } catch (err) {
