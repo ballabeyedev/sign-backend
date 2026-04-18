@@ -17,5 +17,5 @@ router.post(
 );
 router.post('/login', authController.login);
 
-router.get('/hello', auth, authController.hello);
+router.get('/hello', authController.hello);
 module.exports = router;
