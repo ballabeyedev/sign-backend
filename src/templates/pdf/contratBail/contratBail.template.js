@@ -147,12 +147,25 @@ module.exports = async function contratBailTemplate(data) {
      * @param {number} labelW  — largeur de la colonne label (défaut 180)
      */
     function infoRow(label, value, labelW = 180) {
-      const ROW_H = 18;
+      const padding = 6;
       const valueW = CONTENT_W - labelW;
+
+      // 🔹 Calcul hauteur dynamique
+      const labelHeight = doc.heightOfString(label, {
+        width: labelW - 10,
+      });
+
+      const valueHeight = doc.heightOfString(val(value), {
+        width: valueW - 10,
+      });
+
+      const ROW_H = Math.max(labelHeight, valueHeight) + 10;
+
       checkPage(ROW_H + 2);
 
-      // Fond colonne label
+      // Fond label
       doc.rect(MARGIN, y, labelW, ROW_H).fill(LIGHT_GRAY);
+
       // Bordures
       doc.rect(MARGIN, y, CONTENT_W, ROW_H).lineWidth(0.4).strokeColor(MID_GRAY).stroke();
       doc.moveTo(MARGIN + labelW, y).lineTo(MARGIN + labelW, y + ROW_H).strokeColor(MID_GRAY).stroke();
@@ -162,14 +175,18 @@ module.exports = async function contratBailTemplate(data) {
         .fontSize(8.5)
         .fillColor(DARK_GRAY)
         .font('Helvetica-Bold')
-        .text(label, MARGIN + 6, y + 5, { width: labelW - 10, ellipsis: true });
+        .text(label, MARGIN + padding, y + 5, {
+          width: labelW - 10,
+        });
 
       // Texte valeur
       doc
         .fontSize(8.5)
         .fillColor(BLACK)
         .font('Helvetica')
-        .text(val(value), MARGIN + labelW + 6, y + 5, { width: valueW - 10, ellipsis: true });
+        .text(val(value), MARGIN + labelW + padding, y + 5, {
+          width: valueW - 10,
+        });
 
       y += ROW_H;
     }
