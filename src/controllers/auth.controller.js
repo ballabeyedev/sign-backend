@@ -91,3 +91,7 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+exports.hello = (req, res) => {
+  res.status(200).json({ message: 'Hello, world!' });
+}
