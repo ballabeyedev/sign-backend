@@ -107,13 +107,13 @@ const ContratTravail = sequelize.define('ContratTravail', {
     },
 
     remuneration_jours_feries: {
-        type: DataTypes.ENUM('rémunérés', 'non rémunérés', 'rémunérés uniquement en cas de travail effectif '),
+        type: DataTypes.ENUM('rémunérés', 'non rémunérés', 'travail_effectif'),
         defaultValue: 'rémunérés',
         allowNull: false
     },
 
     remuneration_absences_maladie: {
-        type: DataTypes.ENUM('rémunérés', 'non rémunérés', 'rémunérées sous conditions (ancienneté, justification, validation médicale, etc.)'),
+        type: DataTypes.ENUM('rémunérés', 'non rémunérés', 'sous_conditions'),
         defaultValue: 'rémunérés',
         allowNull: false
     },

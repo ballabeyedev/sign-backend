@@ -108,14 +108,26 @@ module.exports = async function contratTravailTemplate(data) {
     // =========================
     doc.text('ARTICLE 7 – CONGÉS ET JOURS FÉRIÉS');
     doc.text(`${val(contrat.nbr_jours_conges)} jours par an`);
-    doc.text(`${val(contrat.remuneration_jours_feries)}`);
+    const mapFeries = {
+    'rémunérés': 'rémérés',
+    'non rémunérés': 'non rémunérés',
+    'travail_effectif': 'rémunérés uniquement en cas de travail effectif'
+    };
+
+    doc.text(mapFeries[contrat.remuneration_jours_feries] || '—');
     doc.moveDown();
 
     // =========================
     // ARTICLE 8
     // =========================
     doc.text('ARTICLE 8 – ABSENCE POUR MALADIE');
-    doc.text(`${val(contrat.remuneration_absences_maladie)}`);
+    const mapAbsence = {
+    'rémunérés': 'rémunérées',
+    'non rémunérés': 'non rémunérées',
+    'sous_conditions': 'rémunérées sous conditions (ancienneté, justification, validation médicale)'
+    };
+
+    doc.text(mapAbsence[contrat.remuneration_absences_maladie] || '—');
     doc.moveDown();
 
     // =========================
