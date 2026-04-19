@@ -2,6 +2,7 @@ const Document = require('./document.model');
 const Utilisateur = require('./utilisateur.model');
 const DocumentItem = require('./documentItem.model');
 const Contrat = require('./contrat.model');
+const ContratTravail = require('./contratTravail.model');
 
 
 Document.belongsTo(Utilisateur, {
@@ -46,10 +47,16 @@ Utilisateur.belongsToMany(Contrat, {
   as: 'locations'
 });
 
+Utilisateur.hasMany(ContratTravail, {
+  foreignKey: 'employeurId',
+  as: 'contrats_employeur'
+});
+
 
 module.exports = {
   Document,
   DocumentItem,
+  ContratTravail,
   Utilisateur,
   Contrat
 };
