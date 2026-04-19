@@ -2,55 +2,61 @@ const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-async function envoyerContratEmail({
-  emailsLocataires,
-  emailBailleur,
+async function envoyerContratTravailEmail({
+  emailSalarie,
+  emailEmployeur,
   numero_contrat,
-  pdfBase64   // ✅ CORRECT
+  poste,
+  date_debut,
+  pdfBase64
 }) {
   try {
-    const subject = `Contrat de bail N° ${numero_contrat}`;
+
+    const subject = `Contrat de travail N° ${numero_contrat}`;
 
     const html = `
-      <h2>Contrat de bail</h2>
+      <h2>Contrat de travail</h2>
       <p>Bonjour,</p>
-      <p>Veuillez trouver ci-joint votre <strong>contrat de bail</strong>.</p>
-      <p>Numéro du contrat : <strong>${numero_contrat}</strong></p>
+      <p>Veuillez trouver ci-joint votre <strong>contrat de travail</strong>.</p>
+      <p><strong>Numéro :</strong> ${numero_contrat}</p>
+      <p><strong>Poste :</strong> ${poste}</p>
+      <p><strong>Date de début :</strong> ${date_debut}</p>
+      <br/>
       <p>Merci de bien vouloir le conserver.</p>
       <br/>
-      <p>Cordialement,<br/>L'équipe de gestion immobilière</p>
+      <p>Cordialement,<br/>L'équipe</p>
     `;
 
     const attachments = [
       {
-        filename: `contrat_${numero_contrat}.pdf`, // ✅ PDF
+        filename: `contrat_${numero_contrat}.pdf`,
         content: pdfBase64,
         encoding: 'base64',
-        contentType: 'application/pdf' // ✅ IMPORTANT
+        contentType: 'application/pdf'
       }
     ];
 
-    // 📩 Locataires
-    await Promise.all(
-      emailsLocataires.map(email =>
-        resend.emails.send({
-          from: 'Contrat Immobilier <onboarding@resend.dev>',
-          to: email,
-          subject,
-          html,
-          attachments
-        })
-      )
-    );
+    // 📩 Envoi au salarié
+    if (emailSalarie) {
+      await resend.emails.send({
+        from: 'Contrat Travail <onboarding@resend.dev>',
+        to: emailSalarie,
+        subject,
+        html,
+        attachments
+      });
+    }
 
-    // 📩 Bailleur
-    await resend.emails.send({
-      from: 'Contrat Immobilier <onboarding@resend.dev>',
-      to: emailBailleur,
-      subject: `Copie du contrat N° ${numero_contrat}`,
-      html,
-      attachments
-    });
+    // 📩 Envoi à l’employeur
+    if (emailEmployeur) {
+      await resend.emails.send({
+        from: 'Contrat Travail <onboarding@resend.dev>',
+        to: emailEmployeur,
+        subject: `Copie du contrat N° ${numero_contrat}`,
+        html,
+        attachments
+      });
+    }
 
     return true;
 
@@ -60,4 +66,4 @@ async function envoyerContratEmail({
   }
 }
 
-module.exports = envoyerContratEmail;
+module.exports = envoyerContratTravailEmail;
