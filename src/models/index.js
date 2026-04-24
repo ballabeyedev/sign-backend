@@ -3,6 +3,8 @@ const Utilisateur = require('./utilisateur.model');
 const DocumentItem = require('./documentItem.model');
 const Contrat = require('./contrat.model');
 const ContratTravail = require('./contratTravail.model');
+const QuittanceLoyer = require('./quittanceLoyer.model');
+
 
 
 Document.belongsTo(Utilisateur, {
@@ -57,6 +59,7 @@ module.exports = {
   Document,
   DocumentItem,
   ContratTravail,
+  QuittanceLoyer,
   Utilisateur,
   Contrat
 };
