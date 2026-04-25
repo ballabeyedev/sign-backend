@@ -4,7 +4,7 @@ const DocumentItem = require('./documentItem.model');
 const Contrat = require('./contrat.model');
 const ContratTravail = require('./contratTravail.model');
 const QuittanceLoyer = require('./quittanceLoyer.model');
-
+const FichePaie = require('./fichePaie.model');
 
 
 Document.belongsTo(Utilisateur, {
@@ -54,12 +54,30 @@ Utilisateur.hasMany(ContratTravail, {
   as: 'contrats_employeur'
 });
 
+// Un utilisateur (employeur) possède plusieurs fiches de paie
+Utilisateur.hasMany(FichePaie, {
+  foreignKey: 'employeurId',
+  as: 'fiches_paie'
+});
+
+// Une fiche de paie appartient à un employeur
+FichePaie.belongsTo(Utilisateur, {
+  foreignKey: 'employeurId',
+  as: 'employeur'
+});
+
+
+FichePaie.belongsTo(Utilisateur, {
+  foreignKey: 'salarieId',
+  as: 'salarie'
+});
 
 module.exports = {
   Document,
   DocumentItem,
   ContratTravail,
   QuittanceLoyer,
+  FichePaie,
   Utilisateur,
   Contrat
 };
