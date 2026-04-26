@@ -137,8 +137,28 @@ class GestionFichePaieService {
 
       await t.commit();
 
+      // ======================
+      // 🔥 OBJET PDF ENRICHI
+      // ======================
+      const fichePDF = {
+        ...fiche.toJSON(),
+
+        // EMPLOYEUR
+        type_employeur: employeur.type_employeur,
+        nom_entreprise: employeur.nom_entreprise,
+        ninea: employeur.ninea,
+        adresse_employeur: employeur.adresse_employeur,
+        telephone_employeur: employeur.telephone_employeur,
+
+        // SALARIÉ
+        nom_salarie: salarie.nom,
+        prenom_salarie: salarie.prenom,
+        numero_cni: salarie.numero_cni,
+        email_salarie: salarie.email
+      };
+
       // PDF + EMAIL
-      const pdf = await fichePaieTemplate({ fiche, calcul, employeur, salarie });
+      const pdf = await fichePaieTemplate({ fiche: fichePDF });
 
       const base64 = pdf.toString('base64');
 
