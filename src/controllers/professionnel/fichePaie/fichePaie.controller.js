@@ -3,43 +3,87 @@ const Service = require('../../../services/professionnel/fichePaie/fichePaie.ser
 class FichePaieController {
 
   static async creerFichePaie(req, res) {
-    const result = await Service.creerFichePaie({
-      utilisateurConnecte: req.user,
-      ...req.body
-    });
+    try {
+      const result = await Service.creerFichePaie({
+        utilisateurConnecte: req.user,
+        ...req.body
+      });
 
-    return res.status(result.success ? 201 : 400).json(result);
+      return res.status(result.success ? 201 : 400).json(result);
+
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
   }
 
   static async getMesFichesPaie(req, res) {
-    const result = await Service.getMesFichesPaie({
-      utilisateurConnecte: req.user
-    });
+    try {
+      const result = await Service.getMesFichesPaie({
+        utilisateurConnecte: req.user
+      });
 
-    return res.json(result);
+      return res.status(200).json(result);
+
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
   }
 
   static async getFichePaie(req, res) {
-    const result = await Service.getFichePaieById({
-      fichePaieId: req.params.fichePaieId,
-      utilisateurConnecte: req.user
-    });
+    try {
+      const result = await Service.getFichePaieById({
+        fichePaieId: req.params.fichePaieId,
+        utilisateurConnecte: req.user
+      });
 
-    return res.status(result.success ? 200 : 404).json(result);
+      return res.status(result.success ? 200 : 404).json(result);
+
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
   }
 
+  // ==========================
+  // DOWNLOAD PDF (CORRIGÉ)
+  // ==========================
   static async telechargerFichePaie(req, res) {
+    try {
+      const result = await Service.telechargerFichePaie({
+        fichePaieId: req.params.fichePaieId
+      });
 
-    const result = await Service.telechargerFichePaie({
-      fichePaieId: req.params.fichePaieId
-    });
+      if (!result.success || !result.data) {
+        return res.status(404).json({
+          success: false,
+          message: "Fiche ou PDF introuvable"
+        });
+      }
 
-    if (!result.success) return res.status(404).json(result);
+      const { pdfBuffer, numero_fiche } = result.data;
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${result.data.numero_fiche}.pdf`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${numero_fiche}.pdf"`
+      );
 
-    return res.send(result.data.pdfBuffer);
+      return res.send(pdfBuffer);
+
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
   }
 }
 

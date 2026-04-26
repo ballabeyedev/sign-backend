@@ -101,12 +101,12 @@ const FichePaie = sequelize.define('FichePaie', {
   // ══════════════════════════════════════════════════════════════
   // SECTION 6 — TEMPS DE TRAVAIL EFFECTIF
   // ══════════════════════════════════════════════════════════════
-  jours_travailles: {
+  nombre_jours_travailles: {
     type: DataTypes.INTEGER,
     allowNull: true
   },
 
-  heures_travaillees: {
+  nombre_heures_travailles: {
     type: DataTypes.FLOAT,
     allowNull: true
   },
@@ -116,9 +116,9 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: false
   },
 
-  jours_absence: {
+  nombre_jours_absence: {
     type: DataTypes.INTEGER,
-    allowNull: true
+    allowNull: true,
   },
 
   type_absence: {
@@ -139,29 +139,18 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: false
   },
 
-  taux_heure_supp: {
-    type: DataTypes.ENUM('10%', '25%', '50%', 'Autre'),
-    allowNull: true
-  },
-
-  autre_taux_heure_supp: {
+  nombre_heures_supplementaires: {
     type: DataTypes.FLOAT,
-    allowNull: true
-  },
-
-  heures_supplementaires: {
-    type: DataTypes.FLOAT,
-    defaultValue: 0
-  },
-
-  montant_heures_supp: {
-    type: DataTypes.DECIMAL(15, 2),
     defaultValue: 0
   },
 
   // ══════════════════════════════════════════════════════════════
   // SECTION 8 — PRIMES ET AVANTAGES
   // ══════════════════════════════════════════════════════════════
+  a_primes: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   prime_transport: {
     type: DataTypes.DECIMAL(15, 2),
     defaultValue: 0
@@ -187,16 +176,11 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: 0
   },
 
-  a_primes: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-
   // ══════════════════════════════════════════════════════════════
   // SECTION 9 — AVANTAGES EN NATURE
   // ══════════════════════════════════════════════════════════════
   avantages_nature: {
-    type: DataTypes.ENUM('Logement', 'Nourriture', 'Transport', 'Autres'),
+    type: DataTypes.ENUM('Aucun', 'Logement', 'Nourriture', 'Transport', 'Autres'),
     allowNull: true
   },
 
@@ -210,11 +194,6 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: 0
   },
 
-  a_avantages: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-
   // ══════════════════════════════════════════════════════════════
   // SECTION 10 — CONGÉS PAYÉS
   // ══════════════════════════════════════════════════════════════
@@ -223,9 +202,9 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: false
   },
 
-  jours_conges: {
+  nombre_jours_conges: {
     type: DataTypes.INTEGER,
-    allowNull: true
+    defaultValue: 0
   },
 
   montant_conges: {
@@ -236,24 +215,14 @@ const FichePaie = sequelize.define('FichePaie', {
   // ══════════════════════════════════════════════════════════════
   // SECTION 11 — AVANCES ET RETENUES
   // ══════════════════════════════════════════════════════════════
-  avance_salaire: {
-    type: DataTypes.DECIMAL(15, 2),
-    defaultValue: 0
-  },
-
   a_avance_salaire: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
 
-  autres_retenues: {
+  montant_avance_salaire: {
     type: DataTypes.DECIMAL(15, 2),
     defaultValue: 0
-  },
-
-  motif_retenue: {
-    type: DataTypes.STRING,
-    allowNull: true
   },
 
   a_autres_retenues: {
@@ -261,9 +230,24 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: false
   },
 
+  motif_retenue: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+
+  montant_retenue: {
+    type: DataTypes.DECIMAL(15, 2),
+    defaultValue: 0
+  },
+
   // ══════════════════════════════════════════════════════════════
   // SECTION 12 — COTISATIONS SOCIALES
   // ══════════════════════════════════════════════════════════════
+  soumis_cotisation: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+
   soumis_ipres: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
@@ -274,14 +258,14 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: true
   },
 
-  mutuelle: {
-    type: DataTypes.DECIMAL(15, 2),
-    defaultValue: 0
-  },
-
-  a_mutuelle: {
+  a_assurance: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+
+  montant_assurance: {
+    type: DataTypes.DECIMAL(15, 2),
+    defaultValue: 0
   },
 
   // ══════════════════════════════════════════════════════════════

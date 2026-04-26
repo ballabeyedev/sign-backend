@@ -31,7 +31,7 @@ class GestionFichePaieService {
     const taux = tauxMap[data.taux_heure_supp] || 0;
 
     const salaire_brut = Number(data.salaire_brut || 0);
-    const heures_supp = Number(data.heures_supplementaires || 0);
+    const heures_supp = Number(data.nombre_heures_supplementaires || 0);
 
     const taux_horaire = salaire_brut / 173.33;
     const montant_heures_supp = Math.round(heures_supp * taux_horaire * (1 + taux));
@@ -67,9 +67,9 @@ class GestionFichePaieService {
 
     const retenues =
       ipres + css + ir +
-      Number(data.mutuelle || 0) +
-      Number(data.avance_salaire || 0) +
-      Number(data.autres_retenues || 0);
+      Number(data.montant_assurance || 0) +
+      Number(data.montant_avance_salaire || 0) +
+      Number(data.montant_retenue || 0);
 
     const net = total_gains - retenues;
 
@@ -84,7 +84,73 @@ class GestionFichePaieService {
     };
   }
 
-  // ======================================================
+  static cleanFiche(data) {
+
+    // ===========================
+    // PRIMES
+    // ===========================
+    if (!data.a_primes) {
+      data.prime_transport = 0;
+      data.prime_logement = 0;
+      data.prime_performance = 0;
+      data.prime_exceptionnelle = 0;
+      data.autres_primes = 0;
+    }
+
+    // ===========================
+    // HEURES SUP
+    // ===========================
+    if (!data.a_heures_supp) {
+      data.nombre_heures_supplementaires = 0;
+    }
+
+    // ===========================
+    // AVANCE / RETENUES
+    // ===========================
+    if (!data.a_avance_salaire) {
+      data.montant_avance_salaire = 0;
+    }
+
+    if (!data.a_autres_retenues) {
+      data.montant_retenue = 0;
+      data.motif_retenue = null;
+    }
+
+    // ===========================
+    // ABSENCE
+    // ===========================
+    if (!data.absence) {
+      data.nombre_jours_absence = 0;
+      data.type_absence = null;
+      data.autre_type_absence = null;
+    }
+
+    // ===========================
+    // AVANTAGES (CORRIGÉ)
+    // ===========================
+    if (data.avantages_nature === "Aucun" || !data.avantages_nature) {
+      data.valeur_avantages = 0;
+    }
+
+    // ===========================
+    // CONGÉS
+    // ===========================
+    if (!data.conges_pris) {
+      data.nombre_jours_conges = 0;
+      data.montant_conges = 0;
+    }
+
+    // ===========================
+    // ASSURANCE
+    // ===========================
+    if (!data.a_assurance) {
+      data.montant_assurance = 0;
+    }
+
+    return data;
+  }
+
+
   static async creerFichePaie({ utilisateurConnecte, salarieId, ...data }) {
 
     const t = await sequelize.transaction();
@@ -98,6 +164,10 @@ class GestionFichePaieService {
       if (!salarie) throw new Error("Salarié introuvable");
 
       const numero_fiche = await this.genererNumeroFiche();
+
+      // 🔥 CLEAN AVANT CALCUL
+      data = this.cleanFiche(data);
+
       const calcul = this.calculerSalaire(data);
 
       const fiche = await FichePaie.create({
@@ -110,59 +180,100 @@ class GestionFichePaieService {
         annee: data.annee,
         salaire_brut: data.salaire_brut,
 
-        heures_supplementaires: data.heures_supplementaires || 0,
-        taux_heure_supp: data.taux_heure_supp,
+        mode_calcul: data.mode_calcul || 'Mensuel',
 
-        prime_transport: data.prime_transport || 0,
-        prime_logement: data.prime_logement || 0,
-        prime_performance: data.prime_performance || 0,
-        prime_exceptionnelle: data.prime_exceptionnelle || 0,
+        // TEMPS TRAVAIL
+        nombre_jours_travailles: data.nombre_jours_travailles,
+        nombre_heures_travailles: data.nombre_heures_travailles,
 
-        mutuelle: data.mutuelle || 0,
-        avance_salaire: data.avance_salaire || 0,
-        autres_retenues: data.autres_retenues || 0,
+        absence: data.absence === true,
+        nombre_jours_absence: data.nombre_jours_absence,
+        type_absence: data.type_absence,
+        autre_type_absence: data.autre_type_absence,
 
-        soumis_ipres: data.soumis_ipres !== false,
-        soumis_css: data.soumis_css !== false,
-        soumis_ir: data.soumis_ir !== false,
+        // HEURES SUP
+        a_heures_supp: data.a_heures_supp === true,
+        nombre_heures_supplementaires: data.nombre_heures_supplementaires,
 
+        // PRIMES
+        a_primes: data.a_primes === true,
+        prime_transport: data.prime_transport,
+        prime_logement: data.prime_logement,
+        prime_performance: data.prime_performance,
+        prime_exceptionnelle: data.prime_exceptionnelle,
+        autres_primes: data.autres_primes,
+
+        // AVANTAGES
+        avantages_nature: data.avantages_nature,
+        autre_avantages: data.autre_avantages,
+        valeur_avantages: data.valeur_avantages,
+
+        // CONGES
+        conges_pris: data.conges_pris || false,
+        nombre_jours_conges: data.nombre_jours_conges,
+        montant_conges: data.montant_conges,
+
+        // RETENUES
+        a_avance_salaire: data.a_avance_salaire || false,
+        montant_avance_salaire: data.montant_avance_salaire,
+
+        a_autres_retenues: data.a_autres_retenues || false,
+        motif_retenue: data.motif_retenue,
+        montant_retenue: data.montant_retenue,
+
+        // COTISATIONS
+        soumis_cotisation: data.soumis_cotisation ?? true,
+        soumis_ipres: data.soumis_ipres ?? true,
+        soumis_css: data.soumis_css ?? true,
+        a_assurance: data.a_assurance || false,
+        montant_assurance: data.montant_assurance,
+
+        // IMPÔTS
+        soumis_ir: data.soumis_ir ?? true,
         situation_familiale: data.situation_familiale || 'Célibataire',
         nombre_enfants: data.nombre_enfants || 0,
 
+        // PAIEMENT
         mode_paiement: data.mode_paiement,
         date_paiement: data.date_paiement,
 
+        // IDENTIFICATION SALARIÉ 
+        poste: data.poste || salarie.poste || null,
+        date_embauche: data.date_embauche || salarie.date_embauche || null,
+        numero_ipres: data.numero_ipres || salarie.numero_ipres || null,
+        numero_css: data.numero_css || salarie.numero_css || null,
+
+        // CALCULS AUTO
         ...calcul
+
       }, { transaction: t });
 
       await t.commit();
 
       // ======================
-      // 🔥 OBJET PDF ENRICHI
+      // PDF DATA ENRICHIE
       // ======================
       const fichePDF = {
         ...fiche.toJSON(),
 
-        // EMPLOYEUR
         type_employeur: employeur.type_employeur,
         nom_entreprise: employeur.nom_entreprise,
         ninea: employeur.ninea,
         adresse_employeur: employeur.adresse_employeur,
         telephone_employeur: employeur.telephone_employeur,
 
-        // SALARIÉ
         nom_salarie: salarie.nom,
         prenom_salarie: salarie.prenom,
         numero_cni: salarie.numero_cni,
         email_salarie: salarie.email
       };
 
-      // PDF + EMAIL
       const pdf = await fichePaieTemplate({ fiche: fichePDF });
 
       const base64 = pdf.toString('base64');
 
-      await FichePaie.update({ fiche_pdf: base64 }, { where: { id: fiche.id } });
+      fiche.fiche_pdf = base64;
+      await fiche.save();
 
       await envoyerFichePaieEmail({
         emailEmployeur: employeur.email,
@@ -177,7 +288,7 @@ class GestionFichePaieService {
       return { success: true, data: fiche };
 
     } catch (err) {
-      if (!t.finished) await t.rollback();
+      await t.rollback();
       return { success: false, message: err.message };
     }
   }
