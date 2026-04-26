@@ -30,8 +30,8 @@ module.exports = async function fichePaieTemplate({ fiche }) {
     doc.fontSize(12).text('EMPLOYEUR');
     doc.fontSize(10);
 
-    doc.text(`Entreprise : ${val(fiche.nom_entreprise)}`);
-    doc.text(`Type : ${val(fiche.type_employeur)}`);
+    doc.text(`Nom de l'entreprise : ${val(fiche.nom_entreprise)}`);
+    doc.text(`Représentant : ${val(fiche.representant)}`);
     doc.text(`NINEA : ${val(fiche.ninea)}`);
     doc.text(`Téléphone : ${val(fiche.telephone_employeur)}`);
     doc.text(`Adresse : ${val(fiche.adresse_employeur)}`);

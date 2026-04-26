@@ -89,7 +89,7 @@ const User = sequelize.define('User', {
 }, {
   tableName: 'utilisateur',
   timestamps: true,
-  paranoid: true, 
+  paranoid: true,
   underscored: true
 });
 

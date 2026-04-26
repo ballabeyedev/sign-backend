@@ -274,15 +274,15 @@ class GestionFichePaieService {
       const fichePDF = {
         ...fiche.toJSON(),
 
-        type_employeur: employeur.type_employeur,
-        nom_entreprise: employeur.nom_entreprise,
+        nom_entreprise: employeur.nomEntreprise,
         ninea: employeur.ninea,
-        adresse_employeur: employeur.adresse_employeur,
-        telephone_employeur: employeur.telephone_employeur,
+        adresse_employeur: employeur.adresseEntreprise,
+        telephone_employeur: employeur.telephoneEntreprise,
+        representant: employeur.prenom + " " + employeur.nom,
 
         nom_salarie: salarie.nom,
         prenom_salarie: salarie.prenom,
-        numero_cni: salarie.numero_cni,
+        numero_cni: salarie.carte_identite_national_num,
         email_salarie: salarie.email
       };
 
