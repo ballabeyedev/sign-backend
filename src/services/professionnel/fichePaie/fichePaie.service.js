@@ -170,6 +170,24 @@ class GestionFichePaieService {
 
       const calcul = this.calculerSalaire(data);
 
+      const exist = await FichePaie.findOne({
+        where: {
+          employeurId: employeur.id,
+          salarieId: salarie.id,
+          mois: data.mois,
+          annee: data.annee
+        }
+      });
+
+      if (exist) {
+        await t.rollback();
+
+        return {
+          success: false,
+          message: `❌ Une fiche de paie existe déjà pour ${salarie.prenom} ${salarie.nom} sur ${data.mois} ${data.annee}`
+        };
+      }
+
       const fiche = await FichePaie.create({
         numero_fiche,
         employeurId: employeur.id,
@@ -289,6 +307,12 @@ class GestionFichePaieService {
 
     } catch (err) {
       await t.rollback();
+      if (err.name === 'SequelizeUniqueConstraintError') {
+        return {
+          success: false,
+          message: `⚠️ Une fiche de paie existe déjà pour ce salarié sur cette période`
+        };
+      }
       return { success: false, message: err.message };
     }
   }
