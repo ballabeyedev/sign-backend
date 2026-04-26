@@ -1,8 +1,8 @@
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 
 const FichePaieController = require('../../../controllers/professionnel/fichePaie/fichePaie.controller');
-const authMiddleware      = require('../../../middlewares/auth.middleware');
+const authMiddleware = require('../../../middlewares/auth.middleware');
 
 // ============================================================
 // 🔹 ROUTES FICHE DE PAIE

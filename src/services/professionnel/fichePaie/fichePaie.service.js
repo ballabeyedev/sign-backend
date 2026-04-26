@@ -38,14 +38,14 @@ class GestionFichePaieService {
   // ============================================================
   static calculerSalaire(data) {
 
-    const salaire_brut         = Number(data.salaire_brut || 0);
-    const prime_transport      = Number(data.prime_transport || 0);
-    const prime_logement       = Number(data.prime_logement || 0);
-    const prime_performance    = Number(data.prime_performance || 0);
+    const salaire_brut = Number(data.salaire_brut || 0);
+    const prime_transport = Number(data.prime_transport || 0);
+    const prime_logement = Number(data.prime_logement || 0);
+    const prime_performance = Number(data.prime_performance || 0);
     const prime_exceptionnelle = Number(data.prime_exceptionnelle || 0);
-    const autres_primes        = Number(data.autres_primes || 0);
-    const valeur_avantages     = Number(data.valeur_avantages || 0);
-    const heures_supp          = Number(data.heures_supplementaires || 0);
+    const autres_primes = Number(data.autres_primes || 0);
+    const valeur_avantages = Number(data.valeur_avantages || 0);
+    const heures_supp = Number(data.heures_supplementaires || 0);
 
     // Calcul montant heures supp selon le taux
     let taux = 0;
@@ -53,16 +53,16 @@ class GestionFichePaieService {
     else if (data.taux_heure_supp === '25%') taux = 0.25;
     else if (data.taux_heure_supp === '50%') taux = 0.50;
 
-    const taux_horaire         = salaire_brut / 173.33; // base mensuelle légale
-    const montant_heures_supp  = Math.round(heures_supp * taux_horaire * (1 + taux));
+    const taux_horaire = salaire_brut / 173.33; // base mensuelle légale
+    const montant_heures_supp = Math.round(heures_supp * taux_horaire * (1 + taux));
 
     const total_primes = prime_transport + prime_logement + prime_performance
-                       + prime_exceptionnelle + autres_primes;
-    const total_gains  = salaire_brut + total_primes + montant_heures_supp + valeur_avantages;
+      + prime_exceptionnelle + autres_primes;
+    const total_gains = salaire_brut + total_primes + montant_heures_supp + valeur_avantages;
 
     // Cotisations sociales
     const montant_ipres = data.soumis_ipres ? Math.round(total_gains * 0.056) : 0;
-    const montant_css   = data.soumis_css   ? Math.round(total_gains * 0.03)  : 0;
+    const montant_css = data.soumis_css ? Math.round(total_gains * 0.03) : 0;
 
     // Impôt sur le revenu (barème progressif sénégalais)
     let montant_ir = 0;
@@ -85,16 +85,16 @@ class GestionFichePaieService {
       montant_ir = Math.round(montant_ir * parts);
     }
 
-    const mutuelle        = Number(data.mutuelle || 0);
-    const avance_salaire  = Number(data.avance_salaire || 0);
+    const mutuelle = Number(data.mutuelle || 0);
+    const avance_salaire = Number(data.avance_salaire || 0);
     const autres_retenues = Number(data.autres_retenues || 0);
 
     const total_retenues = montant_ipres + montant_css + montant_ir
-                         + mutuelle + avance_salaire + autres_retenues;
-    const salaire_net    = Math.round(total_gains - total_retenues);
+      + mutuelle + avance_salaire + autres_retenues;
+    const salaire_net = Math.round(total_gains - total_retenues);
 
     return {
-      total_gains:       Math.round(total_gains),
+      total_gains: Math.round(total_gains),
       montant_heures_supp,
       montant_ipres,
       montant_css,
@@ -102,7 +102,7 @@ class GestionFichePaieService {
       mutuelle,
       avance_salaire,
       autres_retenues,
-      total_retenues:    Math.round(total_retenues),
+      total_retenues: Math.round(total_retenues),
       salaire_net
     };
   }
@@ -116,198 +116,161 @@ class GestionFichePaieService {
 
     try {
 
-      // ── 1. Récupérer l'employeur ───────────────────────────
+      // ── 1. Employeur (connecté)
       const employeur = await Utilisateur.findByPk(utilisateurConnecte.id);
       if (!employeur) {
         await transaction.rollback();
         return { success: false, message: 'Employeur introuvable.' };
       }
 
-      // ── 2. Validations ─────────────────────────────────────
-      if (!data.nom_salarie || String(data.nom_salarie).trim() === '') {
+      // ── 2. Salarié (OBLIGATOIRE maintenant)
+      if (!data.salarieId) {
         await transaction.rollback();
-        return { success: false, message: 'Le nom du salarié est requis.' };
+        return { success: false, message: 'Le salarié est requis.' };
       }
 
-      if (!data.prenom_salarie || String(data.prenom_salarie).trim() === '') {
+      const salarie = await Utilisateur.findByPk(data.salarieId);
+      if (!salarie) {
         await transaction.rollback();
-        return { success: false, message: 'Le prénom du salarié est requis.' };
+        return { success: false, message: 'Salarié introuvable.' };
       }
 
+      // ── 3. Validations simples
       if (!data.salaire_brut || Number(data.salaire_brut) <= 0) {
         await transaction.rollback();
-        return { success: false, message: 'Le salaire brut doit être supérieur à 0.' };
+        return { success: false, message: 'Salaire brut invalide.' };
       }
 
-      if (!data.mois) {
+      if (!data.mois || !data.annee) {
         await transaction.rollback();
-        return { success: false, message: 'Le mois est requis.' };
+        return { success: false, message: 'Mois et année requis.' };
       }
 
-      if (!data.annee) {
-        await transaction.rollback();
-        return { success: false, message: "L'année est requise." };
-      }
-
-      if (!data.mode_paiement) {
-        await transaction.rollback();
-        return { success: false, message: 'Le mode de paiement est requis.' };
-      }
-
-      if (!data.date_paiement) {
-        await transaction.rollback();
-        return { success: false, message: 'La date de paiement est requise.' };
-      }
-
-      // ── 3. Numéro unique ───────────────────────────────────
+      // ── 4. Numéro fiche
       const numero_fiche = await this.genererNumeroFiche();
 
-      // ── 4. Calcul automatique ──────────────────────────────
+      // ── 5. Calcul
       const calcul = this.calculerSalaire(data);
 
-      // ── 5. Création en base ────────────────────────────────
+      // ── 6. Création
       const fiche = await FichePaie.create({
 
         numero_fiche,
         employeurId: employeur.id,
+        salarieId: salarie.id,
 
-        // Section 1 — Employeur
-        type_employeur:      data.type_employeur      || 'Entreprise',
-        nom_entreprise:      data.nom_entreprise      || null,
-        ninea:               data.ninea               || null,
-        adresse_employeur:   data.adresse_employeur   || null,
-        telephone_employeur: data.telephone_employeur || null,
+        // Section salarié (complément)
+        numero_ipres: data.numero_ipres || null,
+        numero_css: data.numero_css || null,
+        poste: data.poste || null,
+        date_embauche: data.date_embauche || null,
 
-        // Section 2 — Salarié
-        nom_salarie:    data.nom_salarie,
-        prenom_salarie: data.prenom_salarie,
-        numero_cni:     data.numero_cni    || null,
-        numero_ipres:   data.numero_ipres  || null,
-        numero_css:     data.numero_css    || null,
-        poste:          data.poste         || null,
-        date_embauche:  data.date_embauche || null,
-
-        // Section 3 — Contrat
+        // Contrat
         type_contrat: data.type_contrat || 'CDI',
 
-        // Section 4 — Période
-        mois:  data.mois,
+        // Période
+        mois: data.mois,
         annee: Number(data.annee),
 
-        // Section 5 — Salaire
+        // Salaire
         salaire_brut: Number(data.salaire_brut),
-        mode_calcul:  data.mode_calcul || 'Mensuel',
+        mode_calcul: data.mode_calcul || 'Mensuel',
 
-        // Section 6 — Temps de travail
-        jours_travailles:   data.jours_travailles   || null,
-        heures_travaillees: data.heures_travaillees  || null,
-        absence:            data.absence             || false,
-        jours_absence:      data.jours_absence       || null,
-        type_absence:       data.type_absence        || null,
+        // Temps travail
+        jours_travailles: data.jours_travailles || null,
+        heures_travaillees: data.heures_travaillees || null,
+        absence: data.absence || false,
+        jours_absence: data.jours_absence || null,
+        type_absence: data.type_absence || null,
 
-        // Section 7 — Heures supp
+        // Heures supp
         heures_supplementaires: Number(data.heures_supplementaires || 0),
-        taux_heure_supp:        data.taux_heure_supp || null,
-        montant_heures_supp:    calcul.montant_heures_supp,
+        taux_heure_supp: data.taux_heure_supp || null,
+        montant_heures_supp: calcul.montant_heures_supp,
 
-        // Section 8 — Primes
-        prime_transport:      Number(data.prime_transport      || 0),
-        prime_logement:       Number(data.prime_logement       || 0),
-        prime_performance:    Number(data.prime_performance    || 0),
+        // Primes
+        prime_transport: Number(data.prime_transport || 0),
+        prime_logement: Number(data.prime_logement || 0),
+        prime_performance: Number(data.prime_performance || 0),
         prime_exceptionnelle: Number(data.prime_exceptionnelle || 0),
-        autres_primes:        Number(data.autres_primes        || 0),
+        autres_primes: Number(data.autres_primes || 0),
 
-        // Section 9 — Avantages nature
+        // Avantages
         avantages_nature: data.avantages_nature || null,
         valeur_avantages: Number(data.valeur_avantages || 0),
 
-        // Section 10 — Congés
-        conges_pris:    data.conges_pris  || false,
-        jours_conges:   data.jours_conges || null,
+        // Congés
+        conges_pris: data.conges_pris || false,
+        jours_conges: data.jours_conges || null,
         montant_conges: Number(data.montant_conges || 0),
 
-        // Section 11 — Retenues
-        avance_salaire:  Number(data.avance_salaire  || 0),
+        // Retenues
+        avance_salaire: Number(data.avance_salaire || 0),
         autres_retenues: Number(data.autres_retenues || 0),
-        motif_retenue:   data.motif_retenue          || null,
+        motif_retenue: data.motif_retenue || null,
 
-        // Section 12 — Cotisations
+        // Cotisations
         soumis_ipres: data.soumis_ipres !== false,
-        soumis_css:   data.soumis_css   !== false,
-        mutuelle:     Number(data.mutuelle || 0),
+        soumis_css: data.soumis_css !== false,
+        mutuelle: Number(data.mutuelle || 0),
 
-        // Section 13 — Impôts
-        soumis_ir:           data.soumis_ir !== false,
+        // Impôts
+        soumis_ir: data.soumis_ir !== false,
         situation_familiale: data.situation_familiale || 'Célibataire',
-        nombre_enfants:      Number(data.nombre_enfants || 0),
+        nombre_enfants: Number(data.nombre_enfants || 0),
 
-        // Section 14 — Paiement
+        // Paiement
         mode_paiement: data.mode_paiement,
         date_paiement: data.date_paiement,
 
-        // Résultats calculs
-        total_gains:    calcul.total_gains,
-        montant_ipres:  calcul.montant_ipres,
-        montant_css:    calcul.montant_css,
-        montant_ir:     calcul.montant_ir,
+        // Résultats
+        total_gains: calcul.total_gains,
+        montant_ipres: calcul.montant_ipres,
+        montant_css: calcul.montant_css,
+        montant_ir: calcul.montant_ir,
         total_retenues: calcul.total_retenues,
-        salaire_net:    calcul.salaire_net,
-        fiche_pdf:      null
+        salaire_net: calcul.salaire_net,
+
+        fiche_pdf: null
 
       }, { transaction });
 
       await transaction.commit();
 
-      // ── 6. Génération PDF (ne bloque pas) ──────────────────
+      // ── PDF
       let pdfBase64 = null;
       try {
-        const pdfBuffer = await fichePaieTemplate({ fiche, calcul, employeur });
+        const pdfBuffer = await fichePaieTemplate({
+          fiche,
+          calcul,
+          employeur,
+          salarie
+        });
         pdfBase64 = pdfBuffer.toString('base64');
-        await FichePaie.update({ fiche_pdf: pdfBase64 }, { where: { id: fiche.id } });
-        console.log('✅ PDF fiche de paie généré');
-      } catch (pdfErr) {
-        console.error('❌ Erreur PDF:', pdfErr.message);
-      }
 
-      // ── 7. Email (ne bloque pas) ───────────────────────────
+        await FichePaie.update(
+          { fiche_pdf: pdfBase64 },
+          { where: { id: fiche.id } }
+        );
+      } catch (e) { }
+
+      // ── EMAIL
       try {
         await envoyerFichePaieEmail({
           emailEmployeur: employeur.email,
           numero_fiche,
-          nom:         `${data.prenom_salarie} ${data.nom_salarie}`,
-          mois:        data.mois,
-          annee:       data.annee,
+          nom: `${salarie.prenom} ${salarie.nom}`,
+          mois: data.mois,
+          annee: data.annee,
           salaire_net: calcul.salaire_net,
           pdfBase64
         });
-        console.log('✅ Email fiche de paie envoyé');
-      } catch (emailErr) {
-        console.error('❌ Erreur email:', emailErr.message);
-      }
+      } catch (e) { }
 
-      return {
-        success: true,
-        message: 'Fiche de paie générée avec succès.',
-        data: {
-          ...fiche.toJSON(),
-          calcul_detail: {
-            total_gains:        calcul.total_gains,
-            montant_heures_supp:calcul.montant_heures_supp,
-            montant_ipres:      calcul.montant_ipres,
-            montant_css:        calcul.montant_css,
-            montant_ir:         calcul.montant_ir,
-            mutuelle:           calcul.mutuelle,
-            avance_salaire:     calcul.avance_salaire,
-            autres_retenues:    calcul.autres_retenues,
-            total_retenues:     calcul.total_retenues,
-            salaire_net:        calcul.salaire_net
-          }
-        }
-      };
+      return { success: true, data: fiche };
 
     } catch (error) {
       if (transaction && !transaction.finished) await transaction.rollback();
-      console.error('Erreur creerFichePaie:', error);
       return { success: false, message: error.message };
     }
   }
@@ -384,7 +347,7 @@ class GestionFichePaieService {
       return {
         success: true,
         data: {
-          pdfBuffer:    Buffer.from(fiche.fiche_pdf, 'base64'),
+          pdfBuffer: Buffer.from(fiche.fiche_pdf, 'base64'),
           numero_fiche: fiche.numero_fiche
         }
       };

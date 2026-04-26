@@ -27,51 +27,18 @@ const FichePaie = sequelize.define('FichePaie', {
     }
   },
 
-  // ══════════════════════════════════════════════════════════════
-  // SECTION 1 — IDENTIFICATION EMPLOYEUR
-  // ══════════════════════════════════════════════════════════════
-  type_employeur: {
-    type: DataTypes.ENUM('Particulier', 'Entreprise'),
-    allowNull: false
-  },
-
-  nom_entreprise: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-
-  ninea: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-
-  adresse_employeur: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-
-  telephone_employeur: {
-    type: DataTypes.STRING,
-    allowNull: true
+  salarieId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'utilisateur',
+      key: 'id'
+    }
   },
 
   // ══════════════════════════════════════════════════════════════
   // SECTION 2 — IDENTIFICATION SALARIÉ
   // ══════════════════════════════════════════════════════════════
-  nom_salarie: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-
-  prenom_salarie: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-
-  numero_cni: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
 
   numero_ipres: {
     type: DataTypes.STRING,
@@ -159,17 +126,32 @@ const FichePaie = sequelize.define('FichePaie', {
     allowNull: true
   },
 
+  autre_type_absence: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+
   // ══════════════════════════════════════════════════════════════
   // SECTION 7 — HEURES SUPPLÉMENTAIRES
   // ══════════════════════════════════════════════════════════════
-  heures_supplementaires: {
-    type: DataTypes.FLOAT,
-    defaultValue: 0
+  a_heures_supp: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
 
   taux_heure_supp: {
     type: DataTypes.ENUM('10%', '25%', '50%', 'Autre'),
     allowNull: true
+  },
+
+  autre_taux_heure_supp: {
+    type: DataTypes.FLOAT,
+    allowNull: true
+  },
+
+  heures_supplementaires: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0
   },
 
   montant_heures_supp: {
@@ -205,6 +187,11 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: 0
   },
 
+  a_primes: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+
   // ══════════════════════════════════════════════════════════════
   // SECTION 9 — AVANTAGES EN NATURE
   // ══════════════════════════════════════════════════════════════
@@ -213,9 +200,19 @@ const FichePaie = sequelize.define('FichePaie', {
     allowNull: true
   },
 
+  autre_avantages: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+
   valeur_avantages: {
     type: DataTypes.DECIMAL(15, 2),
     defaultValue: 0
+  },
+
+  a_avantages: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -244,6 +241,11 @@ const FichePaie = sequelize.define('FichePaie', {
     defaultValue: 0
   },
 
+  a_avance_salaire: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+
   autres_retenues: {
     type: DataTypes.DECIMAL(15, 2),
     defaultValue: 0
@@ -252,6 +254,11 @@ const FichePaie = sequelize.define('FichePaie', {
   motif_retenue: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+
+  a_autres_retenues: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -270,6 +277,11 @@ const FichePaie = sequelize.define('FichePaie', {
   mutuelle: {
     type: DataTypes.DECIMAL(15, 2),
     defaultValue: 0
+  },
+
+  a_mutuelle: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -348,7 +360,13 @@ const FichePaie = sequelize.define('FichePaie', {
 
 }, {
   tableName: 'FichePaie',
-  timestamps: true
+  timestamps: true,
+  indexes: [
+    {
+      unique: true,
+      fields: ['employeurId', 'salarieId', 'mois', 'annee']
+    }
+  ]
 });
 
 module.exports = FichePaie;
