@@ -16,7 +16,19 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION — EMPLOYEUR
+  // FK — EMPLOYEUR (utilisateur connecté qui crée la fiche)
+  // ══════════════════════════════════════════════════════════════
+  employeurId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'utilisateur',
+      key: 'id'
+    }
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // SECTION 1 — IDENTIFICATION EMPLOYEUR
   // ══════════════════════════════════════════════════════════════
   type_employeur: {
     type: DataTypes.ENUM('Particulier', 'Entreprise'),
@@ -25,7 +37,7 @@ const FichePaie = sequelize.define('FichePaie', {
 
   nom_entreprise: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   ninea: {
@@ -35,16 +47,16 @@ const FichePaie = sequelize.define('FichePaie', {
 
   adresse_employeur: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   telephone_employeur: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION — SALARIÉ
+  // SECTION 2 — IDENTIFICATION SALARIÉ
   // ══════════════════════════════════════════════════════════════
   nom_salarie: {
     type: DataTypes.STRING,
@@ -58,7 +70,7 @@ const FichePaie = sequelize.define('FichePaie', {
 
   numero_cni: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   numero_ipres: {
@@ -73,16 +85,16 @@ const FichePaie = sequelize.define('FichePaie', {
 
   poste: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
 
   date_embauche: {
     type: DataTypes.DATEONLY,
-    allowNull: false
+    allowNull: true
   },
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION — CONTRAT
+  // SECTION 3 — TYPE DE CONTRAT
   // ══════════════════════════════════════════════════════════════
   type_contrat: {
     type: DataTypes.ENUM('CDI', 'CDD', 'Intérim', 'Domestique'),
@@ -90,7 +102,7 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION — PÉRIODE
+  // SECTION 4 — PÉRIODE DE PAIE
   // ══════════════════════════════════════════════════════════════
   mois: {
     type: DataTypes.ENUM(
@@ -106,7 +118,7 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // SECTION — SALAIRE
+  // SECTION 5 — SALAIRE DE BASE
   // ══════════════════════════════════════════════════════════════
   salaire_brut: {
     type: DataTypes.DECIMAL(15, 2),
@@ -115,11 +127,12 @@ const FichePaie = sequelize.define('FichePaie', {
 
   mode_calcul: {
     type: DataTypes.ENUM('Mensuel', 'Journalier', 'Horaire'),
-    allowNull: false
+    allowNull: false,
+    defaultValue: 'Mensuel'
   },
 
   // ══════════════════════════════════════════════════════════════
-  // TEMPS DE TRAVAIL
+  // SECTION 6 — TEMPS DE TRAVAIL EFFECTIF
   // ══════════════════════════════════════════════════════════════
   jours_travailles: {
     type: DataTypes.INTEGER,
@@ -142,12 +155,12 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   type_absence: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('Maladie', 'Absence non justifiée', 'Congé', 'Autre'),
     allowNull: true
   },
 
   // ══════════════════════════════════════════════════════════════
-  // HEURES SUPPLÉMENTAIRES
+  // SECTION 7 — HEURES SUPPLÉMENTAIRES
   // ══════════════════════════════════════════════════════════════
   heures_supplementaires: {
     type: DataTypes.FLOAT,
@@ -155,12 +168,17 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   taux_heure_supp: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('10%', '25%', '50%', 'Autre'),
     allowNull: true
   },
 
+  montant_heures_supp: {
+    type: DataTypes.DECIMAL(15, 2),
+    defaultValue: 0
+  },
+
   // ══════════════════════════════════════════════════════════════
-  // PRIMES
+  // SECTION 8 — PRIMES ET AVANTAGES
   // ══════════════════════════════════════════════════════════════
   prime_transport: {
     type: DataTypes.DECIMAL(15, 2),
@@ -188,10 +206,10 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // AVANTAGES EN NATURE
+  // SECTION 9 — AVANTAGES EN NATURE
   // ══════════════════════════════════════════════════════════════
   avantages_nature: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('Logement', 'Nourriture', 'Transport', 'Autres'),
     allowNull: true
   },
 
@@ -201,7 +219,7 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // CONGÉS
+  // SECTION 10 — CONGÉS PAYÉS
   // ══════════════════════════════════════════════════════════════
   conges_pris: {
     type: DataTypes.BOOLEAN,
@@ -219,7 +237,7 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // RETENUES
+  // SECTION 11 — AVANCES ET RETENUES
   // ══════════════════════════════════════════════════════════════
   avance_salaire: {
     type: DataTypes.DECIMAL(15, 2),
@@ -237,7 +255,7 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // COTISATIONS
+  // SECTION 12 — COTISATIONS SOCIALES
   // ══════════════════════════════════════════════════════════════
   soumis_ipres: {
     type: DataTypes.BOOLEAN,
@@ -255,7 +273,7 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // IMPÔTS
+  // SECTION 13 — IMPÔTS ET TAXES
   // ══════════════════════════════════════════════════════════════
   soumis_ir: {
     type: DataTypes.BOOLEAN,
@@ -264,7 +282,8 @@ const FichePaie = sequelize.define('FichePaie', {
 
   situation_familiale: {
     type: DataTypes.ENUM('Célibataire', 'Marié'),
-    allowNull: false
+    allowNull: false,
+    defaultValue: 'Célibataire'
   },
 
   nombre_enfants: {
@@ -273,7 +292,7 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // PAIEMENT
+  // SECTION 14 — MODE DE PAIEMENT
   // ══════════════════════════════════════════════════════════════
   mode_paiement: {
     type: DataTypes.ENUM('Espèces', 'Virement bancaire', 'Wave / Orange Money'),
@@ -286,9 +305,24 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // 🔥 AJOUT CALCULS (IMPORTANT)
+  // RÉSULTATS CALCULS (générés automatiquement)
   // ══════════════════════════════════════════════════════════════
   total_gains: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true
+  },
+
+  montant_ipres: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true
+  },
+
+  montant_css: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true
+  },
+
+  montant_ir: {
     type: DataTypes.DECIMAL(15, 2),
     allowNull: true
   },
@@ -304,12 +338,12 @@ const FichePaie = sequelize.define('FichePaie', {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // FINAL
+  // PDF
   // ══════════════════════════════════════════════════════════════
   fiche_pdf: {
     type: DataTypes.TEXT('long'),
+    allowNull: true,
     comment: 'PDF encodé en base64'
-    
   }
 
 }, {

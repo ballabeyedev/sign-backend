@@ -10,39 +10,46 @@ class FichePaieController {
 
       const utilisateurConnecte = req.user;
 
+      // ✅ Accepte body à plat ET body imbriqué par sections
       const {
-        employeur,
-        salarie,
-        contrat,
-        periode,
-        salaire,
-        tempsTravail,
-        heuresSupplementaires,
-        primes,
-        avantagesNature,
-        conges,
-        retenues,
-        cotisations,
-        impots,
-        paiement
+        employeur = {},
+        salarie = {},
+        contrat = {},
+        periode = {},
+        salaire = {},
+        tempsTravail = {},
+        heuresSupplementaires = {},
+        primes = {},
+        avantagesNature = {},
+        conges = {},
+        retenues = {},
+        cotisations = {},
+        impots = {},
+        paiement = {},
+        ...reste
       } = req.body;
+
+      const data = {
+        ...employeur,
+        ...salarie,
+        ...contrat,
+        ...periode,
+        ...salaire,
+        ...tempsTravail,
+        ...heuresSupplementaires,
+        ...primes,
+        ...avantagesNature,
+        ...conges,
+        ...retenues,
+        ...cotisations,
+        ...impots,
+        ...paiement,
+        ...reste
+      };
 
       const result = await GestionFichePaieService.creerFichePaie({
         utilisateurConnecte,
-        employeur,
-        salarie,
-        contrat,
-        periode,
-        salaire,
-        tempsTravail,
-        heuresSupplementaires,
-        primes,
-        avantagesNature,
-        conges,
-        retenues,
-        cotisations,
-        impots,
-        paiement
+        ...data
       });
 
       if (!result.success) {
@@ -53,10 +60,7 @@ class FichePaieController {
 
     } catch (error) {
       console.error(error);
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
+      return res.status(500).json({ success: false, message: error.message });
     }
   }
 
@@ -75,10 +79,7 @@ class FichePaieController {
       return res.status(200).json(result);
 
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
+      return res.status(500).json({ success: false, message: error.message });
     }
   }
 
@@ -103,10 +104,7 @@ class FichePaieController {
       return res.status(200).json(result);
 
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
+      return res.status(500).json({ success: false, message: error.message });
     }
   }
 
@@ -137,10 +135,7 @@ class FichePaieController {
       return res.send(pdfBuffer);
 
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
+      return res.status(500).json({ success: false, message: error.message });
     }
   }
 }

@@ -1,39 +1,37 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 
-const FichePaieController = require('../../../controllers/professionnel/fichePaie/fichePaie.Controller');
-
-// 👉 middleware auth obligatoire
-const authMiddleware = require('../../../middlewares/auth.middleware');
+const FichePaieController = require('../../../controllers/professionnel/fichePaie/fichePaie.controller');
+const authMiddleware      = require('../../../middlewares/auth.middleware');
 
 // ============================================================
 // 🔹 ROUTES FICHE DE PAIE
 // ============================================================
 
-// créer une fiche de paie
+// Créer une fiche de paie
 router.post(
   '/creation-fiche-paie',
   authMiddleware,
   FichePaieController.creerFichePaie
 );
 
-// mes fiches de paie
+// Lister mes fiches de paie
 router.get(
   '/',
   authMiddleware,
   FichePaieController.getMesFichesPaie
 );
 
-// détail d’une fiche de paie
+// Détail d'une fiche de paie
 router.get(
-  '/:fichePaieId',
+  '/fiches-paie/:fichePaieId',
   authMiddleware,
   FichePaieController.getFichePaie
 );
 
-// télécharger PDF fiche de paie
+// Télécharger le PDF d'une fiche
 router.get(
-  '/:fichePaieId/download',
+  '/fiches-paie/:fichePaieId/download',
   authMiddleware,
   FichePaieController.telechargerFichePaie
 );
