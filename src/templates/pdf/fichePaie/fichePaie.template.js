@@ -116,7 +116,7 @@ module.exports = async function fichePaieTemplate({ fiche }) {
         'Poste', val(fiche.poste)],
       ['N° CNI', val(fiche.numero_cni), "Date d'embauche", val(fiche.date_embauche)],
       ['Email', val(fiche.email_salarie), 'N° IPRES', val(fiche.numero_ipres)],
-      ['', '', 'N° CSS', val(fiche.numero_css)],
+      ['Type de contrat', val(fiche.type_contrat), 'N° CSS', val(fiche.numero_css)],
     ]);
     y += 6;
 
