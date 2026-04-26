@@ -1,131 +1,45 @@
-const GestionFichePaieService = require('../../../services/professionnel/fichePaie/fichePaie.service');
+const Service = require('../../../services/professionnel/fichePaie/fichePaie.service');
 
 class FichePaieController {
 
-  // ============================================================
-  // 🔹 CRÉER FICHE DE PAIE
-  // ============================================================
   static async creerFichePaie(req, res) {
-    try {
+    const result = await Service.creerFichePaie({
+      utilisateurConnecte: req.user,
+      ...req.body
+    });
 
-      const utilisateurConnecte = req.user;
-
-      const {
-        salarieId,
-        ...data
-      } = req.body;
-
-      // 🔴 VALIDATION MINIMALE
-      if (!salarieId) {
-        return res.status(400).json({
-          success: false,
-          message: "Le salarié (salarieId) est obligatoire."
-        });
-      }
-
-      const result = await GestionFichePaieService.creerFichePaie({
-        utilisateurConnecte,
-        salarieId,
-        ...data
-      });
-
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-
-      return res.status(201).json(result);
-
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
+    return res.status(result.success ? 201 : 400).json(result);
   }
 
-  // ============================================================
-  // 🔹 MES FICHES DE PAIE
-  // ============================================================
   static async getMesFichesPaie(req, res) {
-    try {
+    const result = await Service.getMesFichesPaie({
+      utilisateurConnecte: req.user
+    });
 
-      const utilisateurConnecte = req.user;
-
-      const result = await GestionFichePaieService.getMesFichesPaie({
-        utilisateurConnecte
-      });
-
-      return res.status(200).json(result);
-
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
+    return res.json(result);
   }
 
-  // ============================================================
-  // 🔹 DÉTAIL FICHE DE PAIE
-  // ============================================================
   static async getFichePaie(req, res) {
-    try {
+    const result = await Service.getFichePaieById({
+      fichePaieId: req.params.fichePaieId,
+      utilisateurConnecte: req.user
+    });
 
-      const utilisateurConnecte = req.user;
-      const { fichePaieId } = req.params;
-
-      const result = await GestionFichePaieService.getFichePaieById({
-        fichePaieId,
-        utilisateurConnecte
-      });
-
-      if (!result.success) {
-        return res.status(404).json(result);
-      }
-
-      return res.status(200).json(result);
-
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
+    return res.status(result.success ? 200 : 404).json(result);
   }
 
-  // ============================================================
-  // 🔹 TÉLÉCHARGER PDF
-  // ============================================================
   static async telechargerFichePaie(req, res) {
-    try {
 
-      const { fichePaieId } = req.params;
+    const result = await Service.telechargerFichePaie({
+      fichePaieId: req.params.fichePaieId
+    });
 
-      const result = await GestionFichePaieService.telechargerFichePaie({
-        fichePaieId
-      });
+    if (!result.success) return res.status(404).json(result);
 
-      if (!result.success) {
-        return res.status(404).json(result);
-      }
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${result.data.numero_fiche}.pdf`);
 
-      const { pdfBuffer, numero_fiche } = result.data;
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename=fiche-paie-${numero_fiche}.pdf`
-      );
-
-      return res.send(pdfBuffer);
-
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
+    return res.send(result.data.pdfBuffer);
   }
 }
 
